@@ -112,47 +112,9 @@ tr:hover td{background:rgba(244,114,182,.03)}
 .toast{position:fixed;bottom:28px;right:28px;background:var(--surface)!important;border:1px solid var(--pink);color:var(--text)!important;font-size:13px;font-weight:500;padding:12px 20px;border-radius:10px;z-index:999;opacity:0;transform:translateY(10px);transition:all .3s;pointer-events:none;box-shadow:0 8px 32px rgba(244,114,182,.15)}
 .toast.show{opacity:1;transform:translateY(0)}
 @media(max-width:900px){.stats{grid-template-columns:repeat(2,1fr)}.container{padding:16px}header,.tabs{padding:0 16px}.form-row{gap:8px}.fg{min-width:0}}
-
-.login-overlay{position:fixed;inset:0;background:#0f0a0d;z-index:9999;display:flex;align-items:center;justify-content:center}
-.login-box{background:#1a1018;border:1px solid #3a2035;border-radius:16px;padding:40px;width:100%;max-width:380px;text-align:center}
-.login-logo{font-size:28px;font-weight:700;color:#f472b6;letter-spacing:2px;margin-bottom:6px}
-.login-sub{font-size:12px;color:#9d7a8e;margin-bottom:32px}
-.login-input{width:100%;background:#241820;border:1px solid #3a2035;border-radius:8px;color:#fdf0f6;font-size:14px;padding:12px 16px;margin-bottom:14px;outline:none;font-family:'Noto Sans TC',sans-serif;box-sizing:border-box}
-.login-input:focus{border-color:#f472b6}
-.login-btn{width:100%;background:linear-gradient(135deg,#f472b6,#ec4899);color:#fff;border:none;border-radius:8px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;margin-top:6px}
-.login-btn:hover{opacity:.9}
-.login-err{color:#fb7185;font-size:13px;margin-top:10px;display:none}
 </style>
 </head>
 <body>
-<div class="login-overlay" id="login-overlay">
-<div class="login-box">
-<div class="login-logo">MOTOSTOCK</div>
-<div class="login-sub">重機零件庫存管理系統</div>
-<input class="login-input" type="text" id="login-user" placeholder="帳號" autocomplete="username">
-<input class="login-input" type="password" id="login-pass" placeholder="密碼" autocomplete="current-password">
-<button class="login-btn" onclick="doLogin()">登入</button>
-<div class="login-err" id="login-err">帳號或密碼錯誤</div>
-</div>
-</div>
-<script>
-function doLogin(){
-  const u=document.getElementById('login-user').value;
-  const p=document.getElementById('login-pass').value;
-  if(u==='Bearyi'&&p==='Bear1206'){
-    document.getElementById('login-overlay').style.display='none';
-    sessionStorage.setItem('moto_auth','1');
-  }else{
-    document.getElementById('login-err').style.display='block';
-  }
-}
-document.addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
-if(sessionStorage.getItem('moto_auth')==='1')document.addEventListener('DOMContentLoaded',()=>{
-  const o=document.getElementById('login-overlay');
-  if(o)o.style.display='none';
-});
-</script>
-
 
 <header>
 <div>
@@ -485,15 +447,16 @@ async function supaFetch(table,method='GET',body=null,match=null){
 
 async function loadFromCloud(){
   try{
-    const [p,o,s]=await Promise.all([
+    const [p,o,s,pl]=await Promise.all([
       supaFetch('purchases','GET',null,'select=id,data&order=id'),
       supaFetch('out_records','GET',null,'select=id,data&order=id'),
-      supaFetch('settings','GET',null,'key=eq.hiddenItems&select=value')
+      supaFetch('settings','GET',null,'key=eq.hiddenItems&select=value'),
+      supaFetch('pricelist','GET',null,'select=id,data&order=id'),
     ]);
     db.purchases=(p||[]).map(r=>r.data);
     db.outRecords=(o||[]).map(r=>r.data);
     db.hiddenItems=s&&s[0]?s[0].value:[];
-    db.pricelist=[];
+    db.pricelist=(pl||[]).map(r=>r.data);
   }catch(e){console.error('載入失敗',e);}
 }
 
@@ -519,6 +482,16 @@ async function save(){
     else await supaFetch('out_records','PATCH',{data:o},'id=eq.'+o.id);
   }
   for(const id of cloudOIds){if(!localOIds.has(id))await supaFetch('out_records','DELETE',null,'id=eq.'+id);}
+
+  // 同步 pricelist
+  const cloudPL=await supaFetch('pricelist','GET',null,'select=id');
+  const cloudPLIds=new Set((cloudPL||[]).map(r=>r.id));
+  const localPLIds=new Set((db.pricelist||[]).map(p=>p.id));
+  for(const p of (db.pricelist||[])){
+    if(!cloudPLIds.has(p.id))await supaFetch('pricelist','POST',{id:p.id,data:p});
+    else await supaFetch('pricelist','PATCH',{data:p},'id=eq.'+p.id);
+  }
+  for(const id of cloudPLIds){if(!localPLIds.has(id))await supaFetch('pricelist','DELETE',null,'id=eq.'+id);}
 
   // 同步 hiddenItems
   const hi=await supaFetch('settings','GET',null,'key=eq.hiddenItems&select=key');
