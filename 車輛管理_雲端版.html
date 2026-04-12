@@ -1,0 +1,1568 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>驃宇重車 車輛管理</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+:root{
+--bg:#0d0810;--surface:#170f1c;--surface2:#211529;--border:#3d1f4a;
+--pink:#f472b6;--pink2:#ec4899;--pink3:#fda4cf;
+--text:#fdf0f8;--muted:#9d6e8a;
+--green:#34d399;--red:#fb7185;--yellow:#fbbf24;--blue:#a78bfa;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{background:#0d0810!important;color:#fdf0f8!important}
+body{font-family:'Noto Sans TC',sans-serif;min-height:100vh;font-size:14px}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--surface)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+header{background:linear-gradient(135deg,#1a0d22,#0d0810)!important;border-bottom:1px solid var(--border);padding:0 28px;height:64px;display:flex;align-items:center;position:sticky;top:0;z-index:200;box-shadow:0 4px 24px rgba(244,114,182,.08)}
+.logo{font-size:22px;font-weight:700;color:var(--pink);letter-spacing:1px}
+.logo-sub{font-size:12px;color:var(--muted)}
+.alert-banner{background:linear-gradient(90deg,rgba(251,191,36,.15),rgba(251,191,36,.05));border-bottom:1px solid rgba(251,191,36,.3);padding:10px 28px;display:flex;align-items:center;gap:10px;font-size:13px;color:var(--yellow);cursor:pointer}
+.alert-count{background:var(--yellow);color:#000;font-weight:700;font-size:11px;padding:2px 8px;border-radius:20px}
+.tabs{display:flex;border-bottom:1px solid var(--border);padding:0 28px;background:var(--surface)!important;overflow-x:auto;gap:4px}
+.tab{padding:12px 20px;border:none;background:none;color:var(--muted);font-family:'Noto Sans TC',sans-serif;font-size:13px;font-weight:500;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .2s}
+.tab:hover{color:var(--text)}
+.tab.active{color:#fff!important;background:var(--pink)!important;border-radius:6px;font-weight:700}
+.container{padding:24px 28px;max-width:1400px;margin:0 auto}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.stat{background:var(--surface)!important;border:1px solid var(--border)!important;border-radius:12px;padding:18px 20px;position:relative;overflow:hidden}
+.stat::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px}
+.stat.p::after{background:linear-gradient(90deg,var(--pink),var(--pink2))}
+.stat.g::after{background:var(--green)}
+.stat.r::after{background:var(--red)}
+.stat.y::after{background:var(--yellow)}
+.stat.b::after{background:var(--blue)}
+.stat-label{font-size:11px;color:var(--muted)!important;margin-bottom:6px}
+.stat-value{font-size:26px;font-weight:700}
+.stat.p .stat-value{color:var(--pink)!important}.stat.g .stat-value{color:var(--green)!important}.stat.r .stat-value{color:var(--red)!important}.stat.y .stat-value{color:var(--yellow)!important}.stat.b .stat-value{color:var(--blue)!important}
+.card{background:var(--surface)!important;border:1px solid var(--border)!important;border-radius:12px;padding:20px 24px;margin-bottom:20px}
+.card-title{font-size:14px;font-weight:700;color:var(--pink)!important;margin-bottom:18px}
+.form-row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px}
+.fg{display:flex;flex-direction:column;gap:6px;min-width:100px;flex:1}
+.fg.fill{flex:2}
+label{font-size:11px;color:var(--muted)!important}
+input,select{background:var(--surface2)!important;border:1px solid var(--border)!important;border-radius:8px;color:var(--text)!important;font-family:'Noto Sans TC',sans-serif;font-size:13px;padding:9px 12px;outline:none;transition:border-color .2s;width:100%}
+input:focus,select:focus{border-color:var(--pink)!important}
+select option{background:var(--surface2)}
+.btn{padding:10px 20px;border:none;border-radius:8px;font-family:'Noto Sans TC',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;white-space:nowrap}
+.btn-primary{background:linear-gradient(135deg,var(--pink),var(--pink2))!important;color:#fff!important}
+.btn-primary:hover{opacity:.9;transform:translateY(-1px)}
+.btn-danger{background:transparent!important;color:var(--red)!important;border:1px solid var(--red)!important;font-size:12px;padding:5px 12px}
+.btn-danger:hover{background:var(--red)!important;color:#fff!important}
+.btn-sm{background:var(--surface2)!important;color:var(--muted)!important;border:1px solid var(--border)!important;font-size:12px;padding:6px 14px}
+.btn-sm:hover{border-color:var(--pink)!important;color:var(--pink)!important}
+.btn-sell{background:rgba(244,114,182,.1)!important;color:var(--pink)!important;border:1px solid var(--pink2)!important;font-size:12px;padding:5px 12px}
+.btn-sell:hover{background:var(--pink2)!important;color:#fff!important}
+.btn-edit{background:rgba(167,139,250,.1)!important;color:var(--blue)!important;border:1px solid var(--blue)!important;font-size:12px;padding:5px 12px}
+.btn-edit:hover{background:var(--blue)!important;color:#fff!important}
+.btn-add-row{background:rgba(244,114,182,.08);color:var(--pink);border:1px dashed var(--pink2);font-size:12px;padding:7px;width:100%;border-radius:8px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;margin-bottom:12px}
+.btn-add-row:hover{background:rgba(244,114,182,.15)}
+.rows-table{border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:8px}
+.rows-head{display:grid;background:var(--surface2)!important;border-bottom:1px solid var(--border)}
+.rows-head span{padding:8px 12px;font-size:11px;color:var(--muted)!important;font-weight:600;border-right:1px solid var(--border)}
+.rows-head span:last-child{border-right:none}
+.data-row{display:grid;border-bottom:1px solid var(--border)}
+.data-row:last-child{border-bottom:none}
+.data-row input{border-radius:0;border:none!important;border-right:1px solid var(--border)!important;background:var(--surface2)!important}
+.data-row input:focus{background:rgba(244,114,182,.05)!important}
+.row-del{background:none;border:none;border-left:1px solid var(--border);color:var(--muted);cursor:pointer;padding:0 14px;font-size:16px;transition:all .2s}
+.row-del:hover{color:var(--red);background:rgba(251,113,133,.08)}
+.summary-bar{background:var(--surface2)!important;border:1px solid var(--border)!important;border-radius:10px;padding:14px 18px;display:flex;gap:24px;flex-wrap:wrap;margin-bottom:14px}
+.si{display:flex;flex-direction:column;gap:3px}
+.si .sl{font-size:11px;color:var(--muted)!important}
+.si .sv{font-size:16px;font-weight:700}
+.table-wrap{background:var(--surface)!important;border:1px solid var(--border)!important;border-radius:12px;overflow:hidden;margin-bottom:20px;overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:700px}
+thead{background:var(--surface2)!important}
+th{padding:11px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--muted)!important;letter-spacing:.8px;text-transform:uppercase;white-space:nowrap}
+td{padding:12px 14px;border-bottom:1px solid rgba(61,31,74,.5);font-size:13px;vertical-align:middle;color:var(--text)!important}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(244,114,182,.03)}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-alert{background:rgba(251,191,36,.15);color:var(--yellow)!important}
+.badge-overdue{background:rgba(251,113,133,.15);color:var(--red)!important}
+.badge-ok{background:rgba(167,139,250,.15);color:var(--blue)!important}
+.money{font-size:15px;font-weight:700}
+.pos{color:var(--green)!important}.neg{color:var(--red)!important}.neu{color:var(--pink)!important}
+.empty{text-align:center;padding:50px;color:var(--muted)!important}
+.empty .icon{font-size:40px;margin-bottom:10px}
+.page{display:none}.page.active{display:block}
+.sec-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+.sec-title{font-size:16px;font-weight:700;color:var(--text)!important}
+.filter-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.filter-row input,.filter-row select{width:auto;min-width:130px;font-size:13px;padding:8px 12px}
+.sec-label{font-size:12px;color:var(--pink)!important;font-weight:700;display:block;margin-bottom:8px;margin-top:4px}
+.rec-card{background:var(--surface)!important;border:1px solid var(--border)!important;border-radius:10px;margin-bottom:10px;overflow:hidden}
+.rec-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;cursor:pointer;gap:12px}
+.rec-head:hover{background:rgba(244,114,182,.03)}
+.rec-body{border-top:1px solid var(--border);padding:14px 16px;display:none}
+.rec-body.open{display:block}
+.sub-table{width:100%;border-collapse:collapse;margin-bottom:10px;min-width:0}
+.sub-table th{font-size:11px;color:var(--muted)!important;padding:6px 10px;text-align:left;background:var(--surface2)!important}
+.sub-table td{font-size:13px;padding:8px 10px;border-bottom:1px solid rgba(61,31,74,.3);color:var(--text)!important}
+.sub-table tr:last-child td{border-bottom:none}
+.insp-item{display:flex;align-items:center;gap:14px;padding:14px;background:var(--surface2)!important;border-radius:10px;margin-bottom:10px;border-left:3px solid var(--yellow)}
+.insp-item.urgent{border-left-color:var(--red)}
+.insp-item.ok{border-left-color:var(--green)}
+
+/* 定檢卡片升級版 */
+.insp-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin-bottom:12px;overflow:hidden;transition:border-color .2s}
+.insp-card:hover{border-color:var(--pink)}
+.insp-card.status-overdue{border-left:4px solid var(--red)}
+.insp-card.status-soon{border-left:4px solid var(--yellow)}
+.insp-card.status-ok{border-left:4px solid var(--green)}
+.insp-card.status-none{border-left:4px solid var(--muted)}
+.insp-card-body{display:flex;align-items:center;gap:16px;padding:16px 20px;flex-wrap:wrap}
+.insp-icon-wrap{width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0}
+.insp-icon-wrap.overdue{background:rgba(251,113,133,.15)}
+.insp-icon-wrap.soon{background:rgba(251,191,36,.15)}
+.insp-icon-wrap.ok{background:rgba(52,211,153,.15)}
+.insp-icon-wrap.none{background:rgba(157,110,138,.15)}
+.insp-info{flex:1;min-width:180px}
+.insp-car-name{font-size:17px;font-weight:700;color:var(--text);margin-bottom:4px}
+.insp-meta{font-size:12px;color:var(--muted);display:flex;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+.insp-status-text{font-size:13px;font-weight:600}
+.insp-status-text.overdue{color:var(--red)}
+.insp-status-text.soon{color:var(--yellow)}
+.insp-status-text.ok{color:var(--green)}
+.insp-status-text.none{color:var(--muted)}
+.insp-progress-wrap{flex:1;min-width:160px;max-width:260px}
+.insp-progress-label{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:5px}
+.insp-progress-bar{height:6px;background:var(--surface2);border-radius:3px;overflow:hidden}
+.insp-progress-fill{height:100%;border-radius:3px;transition:width .4s}
+.insp-btn-wrap{display:flex;gap:8px;flex-shrink:0}
+.btn-insp-update{background:linear-gradient(135deg,var(--pink),var(--pink2))!important;color:#fff!important;border:none;border-radius:8px;padding:9px 18px;font-family:'Noto Sans TC',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;white-space:nowrap}
+.btn-insp-update:hover{opacity:.85;transform:translateY(-1px)}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.show{display:flex}
+.modal{background:var(--surface)!important;border:1px solid var(--border)!important;border-radius:14px;padding:24px;width:100%;max-width:600px;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.modal-title{font-size:16px;font-weight:700;color:var(--pink)!important;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center}
+.modal-close{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer}
+.modal-close:hover{color:var(--text)}
+.toast{position:fixed;bottom:28px;right:28px;background:var(--surface)!important;border:1px solid var(--pink);color:var(--text)!important;font-size:13px;font-weight:500;padding:12px 20px;border-radius:10px;z-index:999;opacity:0;transform:translateY(10px);transition:all .3s;pointer-events:none;box-shadow:0 8px 32px rgba(244,114,182,.15)}
+.toast.show{opacity:1;transform:translateY(0)}
+
+/* 在庫總覽卡片 */
+.overview-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+.ov-card{background:var(--surface)!important;border:1px solid var(--border)!important;border-radius:14px;padding:18px;position:relative;overflow:hidden;transition:border-color .2s}
+.ov-card:hover{border-color:var(--pink)!important}
+.ov-card.overdue{border-left:3px solid var(--red)!important}
+.ov-card.soon{border-left:3px solid var(--yellow)!important}
+.ov-card.ok{border-left:3px solid var(--green)!important}
+.ov-card-name{font-size:17px;font-weight:700;color:var(--text);margin-bottom:4px}
+.ov-card-sub{font-size:12px;color:var(--muted);margin-bottom:12px}
+.ov-card-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(61,31,74,.3);font-size:13px}
+.ov-card-row:last-child{border-bottom:none}
+.ov-days{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.ov-days.overdue{background:rgba(251,113,133,.15);color:var(--red)}
+.ov-days.soon{background:rgba(251,191,36,.15);color:var(--yellow)}
+.ov-days.ok{background:rgba(52,211,153,.15);color:var(--green)}
+
+/* 同步說明區 */
+.sync-box{background:var(--surface2)!important;border:1px solid var(--border)!important;border-radius:12px;padding:20px;margin-bottom:20px}
+.sync-step{display:flex;gap:14px;align-items:flex-start;margin-bottom:14px}
+.sync-step:last-child{margin-bottom:0}
+.sync-num{background:var(--pink);color:#fff;font-weight:700;font-size:13px;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.qr-wrap{background:#fff;border-radius:12px;padding:12px;display:inline-block}
+
+/* 分潤總覽 */
+.share-person-card{background:var(--surface2)!important;border:1px solid var(--border)!important;border-radius:10px;padding:14px 18px;margin-bottom:10px}
+.share-person-name{font-size:16px;font-weight:700;color:var(--pink);margin-bottom:10px}
+.share-detail-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(61,31,74,.25);font-size:13px}
+.share-detail-row:last-child{border-bottom:none}
+
+textarea{background:var(--surface2)!important;border:1px solid var(--border)!important;border-radius:8px;color:var(--text)!important;font-family:'Noto Sans TC',sans-serif;font-size:12px;padding:9px 12px;outline:none;width:100%;resize:vertical}
+textarea:focus{border-color:var(--pink)!important}
+
+@media(max-width:900px){.stats{grid-template-columns:repeat(2,1fr)}.container{padding:16px}header,.tabs{padding:0 16px}.form-row{gap:8px}.fg{min-width:0}.overview-grid{grid-template-columns:1fr}}
+
+.login-overlay{position:fixed;inset:0;background:#0f0a0d;z-index:9999;display:flex;align-items:center;justify-content:center}
+.login-box{background:#1a1018;border:1px solid #3a2035;border-radius:16px;padding:40px;width:100%;max-width:380px;text-align:center}
+.login-logo{font-size:28px;font-weight:700;color:#f472b6;letter-spacing:2px;margin-bottom:6px}
+.login-sub{font-size:12px;color:#9d7a8e;margin-bottom:32px}
+.login-input{width:100%;background:#241820;border:1px solid #3a2035;border-radius:8px;color:#fdf0f6;font-size:14px;padding:12px 16px;margin-bottom:14px;outline:none;font-family:'Noto Sans TC',sans-serif;box-sizing:border-box}
+.login-input:focus{border-color:#f472b6}
+.login-btn{width:100%;background:linear-gradient(135deg,#f472b6,#ec4899);color:#fff;border:none;border-radius:8px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;margin-top:6px}
+.login-btn:hover{opacity:.9}
+.login-err{color:#fb7185;font-size:13px;margin-top:10px;display:none}
+</style>
+</head>
+<body>
+<div class="login-overlay" id="login-overlay">
+<div class="login-box">
+<div class="login-logo">🏍️ 驃宇重車</div>
+<div class="login-sub">車輛管理系統</div>
+<input class="login-input" type="text" id="login-user" placeholder="帳號" autocomplete="username">
+<input class="login-input" type="password" id="login-pass" placeholder="密碼" autocomplete="current-password">
+<button class="login-btn" onclick="doLogin()">登入</button>
+<div class="login-err" id="login-err">帳號或密碼錯誤</div>
+</div>
+</div>
+<script>
+function doLogin(){
+  const u=document.getElementById('login-user').value;
+  const p=document.getElementById('login-pass').value;
+  if(u==='Bearyi'&&p==='Bear1206'){
+    document.getElementById('login-overlay').style.display='none';
+    sessionStorage.setItem('vehicle_auth','1');
+  }else{
+    document.getElementById('login-err').style.display='block';
+  }
+}
+document.addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
+if(sessionStorage.getItem('vehicle_auth')==='1')document.addEventListener('DOMContentLoaded',()=>{
+  const o=document.getElementById('login-overlay');
+  if(o)o.style.display='none';
+});
+</script>
+
+
+<header>
+<div>
+<div class="logo">🏍️ 驃宇重車</div>
+<div class="logo-sub">車輛管理系統</div>
+</div>
+<div style="margin-left:auto;display:flex;gap:10px;flex-wrap:wrap">
+<button class="btn btn-sm" onclick="exportData()">📤 匯出備份</button>
+<label class="btn btn-sm" style="cursor:pointer">📥 匯入資料<input type="file" accept=".json" onchange="importData(event)" style="display:none"></label>
+<button class="btn btn-sm" onclick="switchTab('sync')">📱 手機同步</button>
+</div>
+</header>
+
+<div id="alert-banner" class="alert-banner" onclick="switchTab('inspection')" style="display:none">
+⚠️ 有 <span class="alert-count" id="alert-count">0</span> 台車輛即將到期定檢，點此查看
+</div>
+
+<div class="tabs">
+<button class="tab active" onclick="switchTab('stock')">🏍️ 在庫管理</button>
+<button class="tab" onclick="switchTab('overview')">📋 在庫總覽</button>
+<button class="tab" onclick="switchTab('sold')">💰 售出車輛</button>
+<button class="tab" onclick="switchTab('maintenance')">🔧 保養/改裝</button>
+<button class="tab" onclick="switchTab('expense')">💸 其他支出</button>
+<button class="tab" onclick="switchTab('inspection')">📅 定檢提醒</button>
+<button class="tab" onclick="switchTab('report')">📊 月報表</button>
+<button class="tab" onclick="switchTab('sync')">📱 手機同步</button>
+</div>
+
+<div class="container">
+
+<!-- 在庫管理 -->
+<div class="page active" id="page-stock">
+<div class="stats">
+<div class="stat p"><div class="stat-label">在庫車輛數</div><div class="stat-value" id="s-cnt">0</div></div>
+<div class="stat g"><div class="stat-label">在庫總成本</div><div class="stat-value" id="s-cost">$0</div></div>
+<div class="stat r"><div class="stat-label">本月售出</div><div class="stat-value" id="s-sold">0</div></div>
+<div class="stat y"><div class="stat-label">本月淨利潤</div><div class="stat-value" id="s-profit">$0</div></div>
+</div>
+<div class="card">
+<div class="card-title">➕ 新增在庫車輛</div>
+<div class="form-row">
+<div class="fg"><label>進車日期</label><input type="date" id="sv-date"></div>
+<div class="fg fill"><label>車輛名稱</label><input type="text" id="sv-name" placeholder="例：R15M、MT07..."></div>
+<div class="fg"><label>年份</label><input type="text" id="sv-year" placeholder="例：2022" onblur="autoYear(this)"></div>
+<div class="fg"><label>里程 (km)</label><input type="number" id="sv-mileage" placeholder="0"></div>
+<div class="fg"><label>車牌</label><input type="text" id="sv-plate" placeholder="ABC-1234"></div>
+</div>
+<div class="form-row">
+<div class="fg"><label>成本 (NT$)</label><input type="number" id="sv-cost" oninput="updateSvSum()"></div>
+<div class="fg"><label>下次定檢日期</label><input type="date" id="sv-inspect"></div>
+<div class="fg fill"><label>備註</label><input type="text" id="sv-note" placeholder="補充說明..."></div>
+</div>
+<div class="form-row">
+<div class="fg fill"><label>🧑 前車主姓名</label><input type="text" id="sv-prev-name" placeholder="前車主姓名..."></div>
+<div class="fg fill"><label>📞 前車主電話</label><input type="text" id="sv-prev-phone" placeholder="前車主電話..."></div>
+</div>
+<span class="sec-label">🔩 耗材/支出項目（可新增多筆）</span>
+<div class="rows-table">
+<div class="rows-head" style="grid-template-columns:1fr 150px 180px 44px">
+<span>項目名稱</span><span>金額 (NT$)</span><span>備註</span><span></span>
+</div>
+<div id="sv-rows"></div>
+</div>
+<button class="btn-add-row" onclick="addSvRow()">＋ 新增耗材項目</button>
+<div class="summary-bar">
+<div class="si"><span class="sl">車輛成本</span><span class="sv neu" id="sv-s-base">$0</span></div>
+<div class="si"><span class="sl">耗材合計</span><span class="sv neg" id="sv-s-parts">$0</span></div>
+<div class="si"><span class="sl">總成本</span><span class="sv neg" id="sv-s-total">$0</span></div>
+</div>
+<button class="btn btn-primary" onclick="addStock()" style="width:100%">確認新增</button>
+</div>
+<div class="sec-header">
+<div class="sec-title">在庫車輛列表</div>
+<div class="filter-row">
+<input type="text" id="stock-search" placeholder="搜尋車名/車牌..." oninput="renderStock()">
+</div>
+</div>
+<div class="table-wrap">
+<table>
+<thead><tr><th>進車日期</th><th>車輛名稱</th><th>年份</th><th>里程</th><th>車牌</th><th>成本</th><th>耗材項目</th><th>總成本</th><th>定檢</th><th>備註</th><th>操作</th></tr></thead>
+<tbody id="stock-body"></tbody>
+</table>
+<div class="empty" id="stock-empty"><div class="icon">🏍️</div><p>尚無在庫車輛</p></div>
+</div>
+</div>
+
+<!-- 在庫總覽 -->
+<div class="page" id="page-overview">
+<div class="stats">
+<div class="stat p"><div class="stat-label">在庫車輛</div><div class="stat-value" id="ov-cnt">0</div></div>
+<div class="stat g"><div class="stat-label">在庫總成本</div><div class="stat-value" id="ov-cost">$0</div></div>
+<div class="stat r"><div class="stat-label">定檢逾期</div><div class="stat-value" id="ov-overdue">0</div></div>
+<div class="stat y"><div class="stat-label">30天內到期</div><div class="stat-value" id="ov-soon">0</div></div>
+</div>
+<div class="sec-header">
+<div class="sec-title">在庫車輛總覽</div>
+<div class="filter-row">
+<input type="text" id="ov-search" placeholder="搜尋車名/車牌..." oninput="renderOverview()">
+<select id="ov-sort" onchange="renderOverview()">
+<option value="date">依進車日期</option>
+<option value="cost">依總成本</option>
+<option value="inspect">依定檢日期</option>
+</select>
+</div>
+</div>
+<div class="overview-grid" id="ov-grid"></div>
+<div class="empty" id="ov-empty" style="display:none"><div class="icon">📋</div><p>尚無在庫車輛</p></div>
+</div>
+
+<!-- 售出車輛 -->
+<div class="page" id="page-sold">
+<div class="stats">
+<div class="stat p"><div class="stat-label">總售出台數</div><div class="stat-value" id="ss-cnt">0</div></div>
+<div class="stat g"><div class="stat-label">總收入</div><div class="stat-value" id="ss-inc">$0</div></div>
+<div class="stat r"><div class="stat-label">總成本</div><div class="stat-value" id="ss-cost">$0</div></div>
+<div class="stat y"><div class="stat-label">總淨利潤</div><div class="stat-value" id="ss-profit">$0</div></div>
+</div>
+<div class="sec-header">
+<div class="sec-title">售出車輛記錄</div>
+<div class="filter-row">
+<input type="text" id="sold-search" placeholder="搜尋車名..." oninput="renderSold()">
+<select id="sold-month" onchange="renderSold()"><option value="">全部月份</option></select>
+</div>
+</div>
+<div id="sold-records"></div>
+<div class="empty" id="sold-empty"><div class="icon">💰</div><p>尚無售出記錄</p></div>
+</div>
+
+<!-- 保養/改裝 -->
+<div class="page" id="page-maintenance">
+<div class="stats">
+<div class="stat p"><div class="stat-label">本月筆數</div><div class="stat-value" id="sm-cnt">0</div></div>
+<div class="stat g"><div class="stat-label">本月總收入</div><div class="stat-value" id="sm-inc">$0</div></div>
+<div class="stat r"><div class="stat-label">本月總成本</div><div class="stat-value" id="sm-cost">$0</div></div>
+<div class="stat y"><div class="stat-label">本月淨利潤</div><div class="stat-value" id="sm-profit">$0</div></div>
+</div>
+<div class="card">
+<div class="card-title">🔧 新增保養/改裝記錄</div>
+<div class="form-row">
+<div class="fg"><label>登記時間</label><input type="date" id="mt-date"></div>
+<div class="fg fill"><label>車輛名稱</label><input type="text" id="mt-car" placeholder="車輛名稱"></div>
+<div class="fg"><label>年份</label><input type="text" id="mt-year" placeholder="2022年"></div>
+<div class="fg fill"><label>備註</label><input type="text" id="mt-note" placeholder="補充說明..."></div>
+</div>
+<span class="sec-label">📋 保養/改裝項目（可新增多筆）</span>
+<div class="rows-table">
+<div class="rows-head" style="grid-template-columns:1fr 150px 150px 44px">
+<span>項目名稱</span><span>收費 (NT$)</span><span>成本 (NT$)</span><span></span>
+</div>
+<div id="mt-rows"></div>
+</div>
+<button class="btn-add-row" onclick="addMtRow()">＋ 新增項目</button>
+<span class="sec-label">💸 分潤（可新增多筆）</span>
+<div class="rows-table">
+<div class="rows-head" style="grid-template-columns:1fr 150px 44px">
+<span>給誰</span><span>金額 (NT$)</span><span></span>
+</div>
+<div id="mt-share-rows"></div>
+</div>
+<button class="btn-add-row" onclick="addShareRow()">＋ 新增分潤</button>
+<div class="summary-bar">
+<div class="si"><span class="sl">總收費</span><span class="sv pos" id="mt-s-price">$0</span></div>
+<div class="si"><span class="sl">總成本</span><span class="sv neg" id="mt-s-cost">$0</span></div>
+<div class="si"><span class="sl">總分潤</span><span class="sv" style="color:var(--yellow)" id="mt-s-share">$0</span></div>
+<div class="si"><span class="sl">淨利潤</span><span class="sv neu" id="mt-s-profit">$0</span></div>
+</div>
+<button class="btn btn-primary" onclick="addMaint()" style="width:100%">✅ 確認新增</button>
+</div>
+<div class="sec-header">
+<div class="sec-title">保養/改裝記錄</div>
+<div class="filter-row">
+<input type="text" id="mt-search" placeholder="搜尋車名/項目..." oninput="renderMaint()">
+<select id="mt-mf" onchange="renderMaint()"><option value="">全部月份</option></select>
+</div>
+</div>
+<div id="mt-records"></div>
+<div class="empty" id="mt-empty"><div class="icon">🔧</div><p>尚無保養/改裝記錄</p></div>
+</div>
+
+<!-- 定檢提醒 -->
+<div class="page" id="page-inspection">
+<div class="stats">
+<div class="stat r"><div class="stat-label">已逾期</div><div class="stat-value" id="io">0</div></div>
+<div class="stat y"><div class="stat-label">30天內到期</div><div class="stat-value" id="is">0</div></div>
+<div class="stat g"><div class="stat-label">狀態正常</div><div class="stat-value" id="ik">0</div></div>
+<div class="stat p"><div class="stat-label">未設定</div><div class="stat-value" id="in2">0</div></div>
+</div>
+<div class="sec-header">
+<div class="sec-title">定檢狀態總覽</div>
+<div class="filter-row">
+<input type="text" id="insp-search" placeholder="搜尋車種或車牌..." oninput="renderInspection()" style="min-width:200px">
+<select id="insp-status-filter" onchange="renderInspection()">
+<option value="">全部狀態</option>
+<option value="overdue">🚨 已逾期</option>
+<option value="soon">⚠️ 即將到期</option>
+<option value="ok">✅ 狀態正常</option>
+<option value="none">📋 未設定</option>
+</select>
+</div>
+</div>
+<div id="insp-list"></div>
+<div class="empty" id="insp-empty" style="display:none"><div class="icon">✅</div><p>目前無在庫車輛</p></div>
+</div>
+
+<!-- 月報表 -->
+<div class="page" id="page-report">
+<div class="stats">
+<div class="stat g"><div class="stat-label">本月總收入</div><div class="stat-value" id="rp-inc">$0</div></div>
+<div class="stat r"><div class="stat-label">本月總成本</div><div class="stat-value" id="rp-cost">$0</div></div>
+<div class="stat y"><div class="stat-label">本月總分潤</div><div class="stat-value" id="rp-share">$0</div></div>
+<div class="stat p"><div class="stat-label">本月淨利潤</div><div class="stat-value" id="rp-profit">$0</div></div>
+</div>
+<div class="sec-header">
+<div class="sec-title">月份報表</div>
+<div class="filter-row">
+<select id="rp-month" onchange="renderReport()"><option value="">全部月份</option></select>
+</div>
+</div>
+<div id="rp-content"></div>
+<div class="empty" id="rp-empty"><div class="icon">📊</div><p>尚無資料</p></div>
+</div>
+
+<!-- 其他支出 -->
+<div class="page" id="page-expense">
+<div class="stats">
+<div class="stat r"><div class="stat-label">本月支出筆數</div><div class="stat-value" id="ex-cnt">0</div></div>
+<div class="stat y"><div class="stat-label">本月總支出</div><div class="stat-value" id="ex-total">$0</div></div>
+<div class="stat b"><div class="stat-label">累計總支出</div><div class="stat-value" id="ex-all">$0</div></div>
+<div class="stat p"><div class="stat-label">本月分類數</div><div class="stat-value" id="ex-cats">0</div></div>
+</div>
+<div class="card">
+<div class="card-title">➕ 新增其他支出</div>
+<div class="form-row">
+<div class="fg"><label>日期</label><input type="date" id="ex-date"></div>
+<div class="fg fill"><label>支出項目</label><input type="text" id="ex-item" placeholder="例：貨車加油、工具購置..."></div>
+<div class="fg"><label>分類</label><select id="ex-cat">
+<option value="油料">⛽ 油料</option>
+<option value="工具">🔧 工具/設備</option>
+<option value="雜費">📦 雜費</option>
+<option value="其他">💬 其他</option>
+</select></div>
+</div>
+<div class="form-row">
+<div class="fg"><label>金額 (NT$)</label><input type="number" id="ex-amount" placeholder="0"></div>
+<div class="fg fill"><label>備註</label><input type="text" id="ex-note" placeholder="補充說明..."></div>
+</div>
+<button class="btn btn-primary" onclick="addExpense()" style="width:100%">確認新增</button>
+</div>
+<div class="sec-header">
+<div class="sec-title">支出記錄</div>
+<div class="filter-row">
+<input type="text" id="ex-search" placeholder="搜尋項目..." oninput="renderExpense()">
+<select id="ex-month-filter" onchange="renderExpense()"><option value="">全部月份</option></select>
+<select id="ex-cat-filter" onchange="renderExpense()">
+<option value="">全部分類</option>
+<option value="油料">⛽ 油料</option>
+<option value="工具">🔧 工具/設備</option>
+<option value="雜費">📦 雜費</option>
+<option value="其他">💬 其他</option>
+</select>
+</div>
+</div>
+<div class="table-wrap">
+<table>
+<thead><tr><th>日期</th><th>項目</th><th>分類</th><th>金額</th><th>備註</th><th>操作</th></tr></thead>
+<tbody id="ex-body"></tbody>
+</table>
+<div class="empty" id="ex-empty"><div class="icon">💸</div><p>尚無其他支出記錄</p></div>
+</div>
+</div>
+
+<!-- 手機同步 -->
+<div class="page" id="page-sync">
+<div class="stats">
+<div class="stat p"><div class="stat-label">在庫車輛</div><div class="stat-value" id="sy-stock">0</div></div>
+<div class="stat g"><div class="stat-label">售出記錄</div><div class="stat-value" id="sy-sold">0</div></div>
+<div class="stat b"><div class="stat-label">保養記錄</div><div class="stat-value" id="sy-maint">0</div></div>
+<div class="stat y"><div class="stat-label">資料版本</div><div class="stat-value" id="sy-ver">—</div></div>
+</div>
+
+<div class="card">
+<div class="card-title">📱 手機同步說明</div>
+<p style="font-size:13px;color:var(--muted);margin-bottom:16px">本系統資料存在瀏覽器，電腦與手機之間需要手動傳輸。請依照以下步驟操作：</p>
+<div class="sync-box">
+<div class="sync-step">
+<div class="sync-num">1</div>
+<div><strong style="color:var(--text)">在電腦上匯出備份</strong><br><span style="font-size:12px;color:var(--muted)">點選上方「📤 匯出備份」，會下載一個 .json 檔案</span></div>
+</div>
+<div class="sync-step">
+<div class="sync-num">2</div>
+<div><strong style="color:var(--text)">將 .json 傳到手機</strong><br><span style="font-size:12px;color:var(--muted)">可用 LINE、AirDrop、Google Drive、Email 等方式傳送 json 檔到手機</span></div>
+</div>
+<div class="sync-step">
+<div class="sync-num">3</div>
+<div><strong style="color:var(--text)">在手機上開啟本系統</strong><br><span style="font-size:12px;color:var(--muted)">在手機瀏覽器開啟這個 HTML 檔案（可先存到手機），然後點「📥 匯入資料」選擇 json 檔</span></div>
+</div>
+<div class="sync-step">
+<div class="sync-num">4</div>
+<div><strong style="color:var(--text)">手機改完再同步回電腦</strong><br><span style="font-size:12px;color:var(--muted)">在手機上匯出備份，再傳回電腦匯入即可</span></div>
+</div>
+</div>
+</div>
+
+<div class="card">
+<div class="card-title">📋 快速複製資料（文字傳輸）</div>
+<p style="font-size:13px;color:var(--muted);margin-bottom:12px">也可以直接複製下方 JSON 文字，貼到手機的記事本，再另存為 .json 檔案後匯入。</p>
+<button class="btn btn-primary" onclick="copyJsonToClipboard()" style="margin-bottom:12px">📋 複製目前資料 JSON</button>
+<textarea id="sync-json-area" rows="6" placeholder="點上方按鈕產生 JSON...（或貼入要匯入的 JSON）" style="margin-bottom:10px"></textarea>
+<button class="btn btn-sm" onclick="importFromTextarea()">📥 從上方文字匯入</button>
+</div>
+</div>
+
+</div><!-- end container -->
+
+<!-- 保養/改裝 編輯 Modal -->
+<div class="modal-overlay" id="maint-edit-modal">
+<div class="modal">
+<div class="modal-title">✏️ 編輯保養/改裝記錄<button class="modal-close" onclick="closeMaintEditModal()">✕</button></div>
+<input type="hidden" id="maint-edit-id">
+<div class="form-row">
+<div class="fg"><label>登記時間</label><input type="date" id="maint-edit-date"></div>
+<div class="fg fill"><label>車輛名稱</label><input type="text" id="maint-edit-car"></div>
+<div class="fg"><label>年份</label><input type="text" id="maint-edit-year"></div>
+<div class="fg fill"><label>備註</label><input type="text" id="maint-edit-note"></div>
+</div>
+<span class="sec-label">📋 保養/改裝項目</span>
+<div class="rows-table">
+<div class="rows-head" style="grid-template-columns:1fr 150px 150px 44px">
+<span>項目名稱</span><span>收費 (NT$)</span><span>成本 (NT$)</span><span></span>
+</div>
+<div id="maint-edit-rows"></div>
+</div>
+<button class="btn-add-row" onclick="addMaintEditRow()">＋ 新增項目</button>
+<span class="sec-label">💸 分潤</span>
+<div class="rows-table">
+<div class="rows-head" style="grid-template-columns:1fr 150px 44px">
+<span>給誰</span><span>金額 (NT$)</span><span></span>
+</div>
+<div id="maint-edit-share-rows"></div>
+</div>
+<button class="btn-add-row" onclick="addMaintEditShareRow()">＋ 新增分潤</button>
+<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px">
+<button class="btn btn-sm" onclick="closeMaintEditModal()">取消</button>
+<button class="btn btn-primary" onclick="confirmMaintEdit()">儲存</button>
+</div>
+</div>
+</div>
+
+<!-- 在庫 編輯 Modal -->
+<div class="modal-overlay" id="edit-modal">
+<div class="modal">
+<div class="modal-title">✏️ 編輯車輛<button class="modal-close" onclick="closeEditModal()">✕</button></div>
+<input type="hidden" id="edit-id">
+<div class="form-row">
+<div class="fg"><label>進車日期</label><input type="date" id="edit-date"></div>
+<div class="fg fill"><label>車輛名稱</label><input type="text" id="edit-name"></div>
+</div>
+<div class="form-row">
+<div class="fg"><label>年份</label><input type="text" id="edit-year" onblur="autoYear(this)"></div>
+<div class="fg"><label>里程</label><input type="number" id="edit-mileage"></div>
+<div class="fg"><label>車牌</label><input type="text" id="edit-plate"></div>
+</div>
+<div class="form-row">
+<div class="fg"><label>成本 (NT$)</label><input type="number" id="edit-cost"></div>
+<div class="fg"><label>定檢日期</label><input type="date" id="edit-inspect"></div>
+<div class="fg fill"><label>備註</label><input type="text" id="edit-note"></div>
+</div>
+<div class="form-row">
+<div class="fg fill"><label>🧑 前車主姓名</label><input type="text" id="edit-prev-name" placeholder="前車主姓名..."></div>
+<div class="fg fill"><label>📞 前車主電話</label><input type="text" id="edit-prev-phone" placeholder="前車主電話..."></div>
+</div>
+<span class="sec-label">🔩 耗材/支出項目</span>
+<div class="rows-table">
+<div class="rows-head" style="grid-template-columns:1fr 150px 180px 44px">
+<span>項目名稱</span><span>金額 (NT$)</span><span>備註</span><span></span>
+</div>
+<div id="edit-parts-rows"></div>
+</div>
+<button class="btn-add-row" onclick="addEditPartRow()">＋ 新增耗材項目</button>
+<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px">
+<button class="btn btn-sm" onclick="closeEditModal()">取消</button>
+<button class="btn btn-primary" onclick="confirmEdit()">儲存</button>
+</div>
+</div>
+</div>
+
+<!-- 售出編輯 Modal -->
+<div class="modal-overlay" id="sold-edit-modal">
+<div class="modal">
+<div class="modal-title">✏️ 編輯售出記錄<button class="modal-close" onclick="closeSoldEditModal()">✕</button></div>
+<input type="hidden" id="sold-edit-id">
+<span class="sec-label">🏍️ 車輛資料</span>
+<div class="form-row">
+<div class="fg"><label>售出日期</label><input type="date" id="sold-edit-date"></div>
+<div class="fg fill"><label>車輛名稱</label><input type="text" id="sold-edit-name"></div>
+<div class="fg"><label>年份</label><input type="text" id="sold-edit-year" onblur="autoYear(this)"></div>
+</div>
+<div class="form-row">
+<div class="fg"><label>售出里程 (km)</label><input type="number" id="sold-edit-mileage"></div>
+<div class="fg"><label>車牌</label><input type="text" id="sold-edit-plate"></div>
+<div class="fg"><label>車輛成本 (NT$)</label><input type="number" id="sold-edit-cost"></div>
+</div>
+<div class="form-row">
+<div class="fg fill"><label>🧑 現車主姓名</label><input type="text" id="sold-edit-buyer-name" placeholder="買家姓名..."></div>
+<div class="fg fill"><label>📞 現車主電話</label><input type="text" id="sold-edit-buyer-phone" placeholder="買家電話..."></div>
+</div>
+<span class="sec-label">🔩 耗材/支出項目</span>
+<div class="rows-table">
+<div class="rows-head" style="grid-template-columns:1fr 150px 180px 44px">
+<span>項目名稱</span><span>金額 (NT$)</span><span>備註</span><span></span>
+</div>
+<div id="sold-edit-parts-rows"></div>
+</div>
+<button class="btn-add-row" onclick="addSoldEditPartRow()">＋ 新增耗材項目</button>
+<span class="sec-label">💰 售出資料</span>
+<div class="form-row">
+<div class="fg"><label>收入 (NT$)</label><input type="number" id="sold-edit-income" placeholder="0"></div>
+<div class="fg fill"><label>支出/過戶費說明</label><input type="text" id="sold-edit-expense" placeholder="例：3500(過戶費)"></div>
+</div>
+<span class="sec-label">💸 分潤（可新增多筆）</span>
+<div class="rows-table">
+<div class="rows-head" style="grid-template-columns:1fr 150px 44px">
+<span>給誰</span><span>金額 (NT$)</span><span></span>
+</div>
+<div id="sold-edit-share-rows"></div>
+</div>
+<button class="btn-add-row" onclick="addSoldEditShareRow()">＋ 新增分潤</button>
+<div class="form-row">
+<div class="fg fill"><label>獎金說明</label><input type="text" id="sold-edit-bonus" placeholder="例：5000賣車(小熊)"></div>
+<div class="fg fill"><label>備註</label><input type="text" id="sold-edit-note" placeholder="補充說明..."></div>
+</div>
+<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px">
+<button class="btn btn-sm" onclick="closeSoldEditModal()">取消</button>
+<button class="btn btn-primary" onclick="confirmSoldEdit()">儲存</button>
+</div>
+</div>
+</div>
+
+<!-- 售出 Modal -->
+<div class="modal-overlay" id="sell-modal">
+<div class="modal">
+<div class="modal-title">💰 售出車輛<button class="modal-close" onclick="closeModal()">✕</button></div>
+<input type="hidden" id="sell-id">
+<div class="form-row">
+<div class="fg"><label>售出日期</label><input type="date" id="sell-date"></div>
+<div class="fg fill"><label>車輛</label><input type="text" id="sell-car" readonly style="color:var(--pink)"></div>
+</div>
+<div class="form-row">
+<div class="fg fill"><label>🧑 現車主姓名</label><input type="text" id="sell-buyer-name" placeholder="買家姓名..."></div>
+<div class="fg fill"><label>📞 現車主電話</label><input type="text" id="sell-buyer-phone" placeholder="買家電話..."></div>
+<div class="fg"><label>售出里程 (km)</label><input type="number" id="sell-mileage" placeholder="0"></div>
+</div>
+<div class="form-row">
+<div class="fg"><label>收入 (NT$)</label><input type="number" id="sell-income" placeholder="0"></div>
+<div class="fg fill"><label>支出/過戶費說明</label><input type="text" id="sell-expense" placeholder="例：3500(過戶費)"></div>
+</div>
+<span class="sec-label">💸 分潤（可新增多筆）</span>
+<div class="rows-table">
+<div class="rows-head" style="grid-template-columns:1fr 150px 44px">
+<span>給誰</span><span>金額 (NT$)</span><span></span>
+</div>
+<div id="sell-share-rows"></div>
+</div>
+<button class="btn-add-row" onclick="addSellShareRow()">＋ 新增分潤</button>
+<div class="form-row">
+<div class="fg fill"><label>獎金說明</label><input type="text" id="sell-bonus" placeholder="例：5000賣車(小熊)"></div>
+<div class="fg fill"><label>備註</label><input type="text" id="sell-note" placeholder="補充說明..."></div>
+</div>
+<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px">
+<button class="btn btn-sm" onclick="closeModal()">取消</button>
+<button class="btn btn-primary" onclick="confirmSell()">確認售出</button>
+</div>
+</div>
+</div>
+
+<!-- 定檢更新 Modal -->
+<div class="modal-overlay" id="insp-modal">
+<div class="modal" style="max-width:480px">
+<div class="modal-title">📅 更新定檢日期<button class="modal-close" onclick="closeInspModal()">✕</button></div>
+<input type="hidden" id="insp-modal-id">
+
+<!-- 車輛資訊區 -->
+<div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:20px">
+<div style="display:flex;align-items:center;gap:14px">
+<div style="font-size:32px" id="insp-modal-icon">🏍️</div>
+<div>
+<div style="font-size:18px;font-weight:700;color:var(--text)" id="insp-modal-name">—</div>
+<div style="font-size:13px;color:var(--muted);margin-top:3px" id="insp-modal-meta">—</div>
+</div>
+</div>
+<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+<div style="display:flex;justify-content:space-between;align-items:center;font-size:13px">
+<span style="color:var(--muted)">目前定檢日期</span>
+<span style="font-weight:700" id="insp-modal-current">未設定</span>
+</div>
+<div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;margin-top:8px">
+<span style="color:var(--muted)">目前狀態</span>
+<span id="insp-modal-status" style="font-weight:700">—</span>
+</div>
+</div>
+</div>
+
+<!-- 新日期輸入 -->
+<div style="margin-bottom:20px">
+<label style="font-size:12px;color:var(--pink);font-weight:700;display:block;margin-bottom:10px">🗓️ 設定新的定檢日期</label>
+<input type="date" id="insp-modal-date" style="font-size:15px;padding:12px 16px;border-radius:10px">
+<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+<button onclick="setInspQuick(6)" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px;font-size:12px;cursor:pointer;font-family:'Noto Sans TC',sans-serif">+6個月</button>
+<button onclick="setInspQuick(12)" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px;font-size:12px;cursor:pointer;font-family:'Noto Sans TC',sans-serif">+1年</button>
+<button onclick="setInspQuick(24)" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px;font-size:12px;cursor:pointer;font-family:'Noto Sans TC',sans-serif">+2年</button>
+</div>
+</div>
+
+<div style="display:flex;gap:10px;justify-content:flex-end">
+<button class="btn btn-sm" onclick="closeInspModal()">取消</button>
+<button class="btn btn-primary" onclick="confirmInspUpdate()">✅ 確認更新</button>
+</div>
+</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPA_URL='https://htrlhokkmdtecwjoxahw.supabase.co';
+const SUPA_KEY='sb_publishable_IITSzjIXUQ320Iq2XIkITg_KeIKki3i';
+let db={stock:[],sold:[],maint:[],expense:[]};
+
+async function supaFetch(table,method='GET',body=null,match=null){
+  let url=`${SUPA_URL}/rest/v1/${table}`;
+  if(match)url+='?'+match;
+  const res=await fetch(url,{
+    method,
+    headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json','Prefer':'return=representation'},
+    body:body?JSON.stringify(body):null
+  });
+  if(!res.ok){const t=await res.text();console.error(table,method,t);return null;}
+  return method==='DELETE'?null:res.json();
+}
+
+async function loadFromCloud(){
+  try{
+    const [s,so,m,e]=await Promise.all([
+      supaFetch('vehicles','GET',null,'select=id,data&order=id'),
+      supaFetch('vehicle_sold','GET',null,'select=id,data&order=id'),
+      supaFetch('vehicle_maintenance','GET',null,'select=id,data&order=id'),
+      supaFetch('vehicle_expense','GET',null,'select=id,data&order=id'),
+    ]);
+    db.stock=(s||[]).map(r=>r.data);
+    db.sold=(so||[]).map(r=>r.data);
+    db.maint=(m||[]).map(r=>r.data);
+    db.expense=(e||[]).map(r=>r.data);
+  }catch(e){console.error('載入失敗',e);}
+}
+
+async function syncTable(table,items){
+  const cloud=await supaFetch(table,'GET',null,'select=id');
+  const cloudIds=new Set((cloud||[]).map(r=>r.id));
+  const localIds=new Set(items.map(i=>i.id));
+  for(const item of items){
+    if(!cloudIds.has(item.id))await supaFetch(table,'POST',{id:item.id,data:item});
+    else await supaFetch(table,'PATCH',{data:item},'id=eq.'+item.id);
+  }
+  for(const id of cloudIds){if(!localIds.has(id))await supaFetch(table,'DELETE',null,'id=eq.'+id);}
+}
+
+async function save(){
+  await Promise.all([
+    syncTable('vehicles',db.stock),
+    syncTable('vehicle_sold',db.sold),
+    syncTable('vehicle_maintenance',db.maint),
+    syncTable('vehicle_expense',db.expense),
+  ]);
+}
+const fmt=n=>{if(!n&&n!==0)return'—';const v=Number(n);return(v<0?'-$':'$')+Math.abs(v).toLocaleString('zh-TW')};
+const today=()=>new Date().toISOString().slice(0,10);
+const ym=()=>new Date().toISOString().slice(0,7);
+const sumStr=s=>(s.match(/\d+/g)||[]).map(Number).reduce((a,b)=>a+b,0);
+
+// 年份自動補「年」
+function autoYear(el){
+  let v=el.value.trim();
+  if(v&&!/年$/.test(v)&&/^\d+$/.test(v))el.value=v+'年';
+}
+
+function toast(msg,ok=true){const el=document.getElementById('toast');el.textContent=msg;el.style.borderColor=ok?'var(--pink)':'var(--red)';el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2500)}
+
+const ALL_TABS=['stock','overview','sold','maintenance','expense','inspection','report','sync'];
+function switchTab(t){
+  document.querySelectorAll('.tab').forEach((b,i)=>b.classList.toggle('active',ALL_TABS[i]===t));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+t).classList.add('active');
+  if(t==='sold'){renderSold();populateMonths('sold-month',db.sold)}
+  if(t==='maintenance'){renderMaint();populateMonths('mt-mf',db.maint)}
+  if(t==='inspection')renderInspection();
+  if(t==='report'){populateReportMonths();renderReport();}
+  if(t==='overview')renderOverview();
+  if(t==='sync')renderSyncPage();
+  if(t==='expense'){renderExpense();populateMonths('ex-month-filter',db.expense);}
+}
+
+function makeRow(wrap,cols,onInput){
+  const div=document.createElement('div');
+  div.className='data-row';
+  div.style.gridTemplateColumns=cols.map(c=>c.w||'1fr').join(' ')+' 44px';
+  cols.forEach(c=>{
+    const inp=document.createElement('input');
+    inp.type=c.t||'text';inp.placeholder=c.p||'';if(c.v!==undefined)inp.value=c.v;
+    if(onInput)inp.addEventListener('input',onInput);
+    div.appendChild(inp);
+  });
+  const del=document.createElement('button');
+  del.className='row-del';del.textContent='✕';
+  del.onclick=()=>{div.remove();if(onInput)onInput()};
+  div.appendChild(del);
+  wrap.appendChild(div);
+  return div;
+}
+
+function addSvRow(){makeRow(document.getElementById('sv-rows'),[{p:'耗材/支出項目名稱'},{t:'number',p:'0',w:'150px'},{p:'備註',w:'180px'}],updateSvSum)}
+function updateSvSum(){
+  const base=Number(document.getElementById('sv-cost').value)||0;
+  let parts=0;
+  document.querySelectorAll('#sv-rows .data-row').forEach(r=>{const ins=r.querySelectorAll('input');parts+=Number(ins[1]?.value)||0});
+  document.getElementById('sv-s-base').textContent=fmt(base);
+  document.getElementById('sv-s-parts').textContent=fmt(parts);
+  document.getElementById('sv-s-total').textContent=fmt(base+parts);
+}
+document.getElementById('sv-cost').addEventListener('input',updateSvSum);
+
+function addMtRow(){makeRow(document.getElementById('mt-rows'),[{p:'保養/改裝項目名稱'},{t:'number',p:'0',w:'150px'},{t:'number',p:'0',w:'150px'}],updateMtSum)}
+function addShareRow(){makeRow(document.getElementById('mt-share-rows'),[{p:'給誰（例：小熊）'},{t:'number',p:'0',w:'150px'}],updateMtSum)}
+function updateMtSum(){
+  let price=0,cost=0,share=0;
+  document.querySelectorAll('#mt-rows .data-row').forEach(r=>{const ins=r.querySelectorAll('input');price+=Number(ins[1]?.value)||0;cost+=Number(ins[2]?.value)||0});
+  document.querySelectorAll('#mt-share-rows .data-row').forEach(r=>{const ins=r.querySelectorAll('input');share+=Number(ins[1]?.value)||0});
+  document.getElementById('mt-s-price').textContent=fmt(price);
+  document.getElementById('mt-s-cost').textContent=fmt(cost);
+  document.getElementById('mt-s-share').textContent=fmt(share);
+  document.getElementById('mt-s-profit').textContent=fmt(price-cost-share);
+}
+function addSellShareRow(){makeRow(document.getElementById('sell-share-rows'),[{p:'給誰（例：小熊）'},{t:'number',p:'0',w:'150px'}],null)}
+function addEditPartRow(){makeRow(document.getElementById('edit-parts-rows'),[{p:'耗材/支出項目名稱'},{t:'number',p:'0',w:'150px'},{p:'備註',w:'180px'}],null)}
+function addMaintEditRow(){makeRow(document.getElementById('maint-edit-rows'),[{p:'保養/改裝項目名稱'},{t:'number',p:'0',w:'150px'},{t:'number',p:'0',w:'150px'}],null)}
+function addMaintEditShareRow(){makeRow(document.getElementById('maint-edit-share-rows'),[{p:'給誰（例：小熊）'},{t:'number',p:'0',w:'150px'}],null)}
+
+// ── STOCK ──
+function addStock(){
+  const name=document.getElementById('sv-name').value.trim();
+  if(!name){toast('請輸入車輛名稱',false);return}
+  autoYear(document.getElementById('sv-year'));
+  const base=Number(document.getElementById('sv-cost').value)||0;
+  const parts=[];
+  document.querySelectorAll('#sv-rows .data-row').forEach(r=>{const ins=r.querySelectorAll('input');const n=ins[0]?.value.trim();if(n)parts.push({name:n,amount:Number(ins[1]?.value)||0,note:ins[2]?.value.trim()||''})});
+  const partsTotal=parts.reduce((s,p)=>s+p.amount,0);
+  db.stock.push({id:Date.now(),date:document.getElementById('sv-date').value||today(),name,year:document.getElementById('sv-year').value.trim(),mileage:document.getElementById('sv-mileage').value,plate:document.getElementById('sv-plate').value.trim(),cost:base,parts,partsTotal,totalCost:base+partsTotal,inspect:document.getElementById('sv-inspect').value,note:document.getElementById('sv-note').value.trim(),prevName:document.getElementById('sv-prev-name').value.trim(),prevPhone:document.getElementById('sv-prev-phone').value.trim()});
+  save().then(()=>toast("💾 已儲存")).catch(()=>toast("❌ 儲存失敗",false));renderStock();updateStockStats();updateAlertBanner();
+  toast('✅ 車輛已新增！');
+  ['sv-name','sv-year','sv-mileage','sv-plate','sv-cost','sv-inspect','sv-note','sv-prev-name','sv-prev-phone'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('sv-rows').innerHTML='';updateSvSum();
+}
+
+function deleteStock(id){if(!confirm('確定刪除此車輛？'))return;db.stock=db.stock.filter(v=>v.id!==id);save().then(()=>toast("💾 已儲存")).catch(()=>toast("❌ 儲存失敗",false));renderStock();updateStockStats();updateAlertBanner();toast('已刪除',false)}
+
+function editStock(id){
+  const v=db.stock.find(v=>v.id===id);if(!v)return;
+  document.getElementById('edit-id').value=id;
+  document.getElementById('edit-date').value=v.date||'';
+  document.getElementById('edit-name').value=v.name||'';
+  document.getElementById('edit-year').value=v.year||'';
+  document.getElementById('edit-mileage').value=v.mileage||'';
+  document.getElementById('edit-plate').value=v.plate||'';
+  document.getElementById('edit-cost').value=v.cost||0;
+  document.getElementById('edit-inspect').value=v.inspect||'';
+  document.getElementById('edit-note').value=v.note||'';
+  document.getElementById('edit-prev-name').value=v.prevName||'';
+  document.getElementById('edit-prev-phone').value=v.prevPhone||'';
+  const wrap=document.getElementById('edit-parts-rows');wrap.innerHTML='';
+  (v.parts||[]).forEach(p=>makeRow(wrap,[{p:'耗材/支出項目名稱',v:p.name},{t:'number',p:'0',w:'150px',v:p.amount},{p:'備註',w:'180px',v:p.note}],null));
+  document.getElementById('edit-modal').classList.add('show');
+}
+function closeEditModal(){document.getElementById('edit-modal').classList.remove('show')}
+function confirmEdit(){
+  const id=Number(document.getElementById('edit-id').value);
+  const v=db.stock.find(v=>v.id===id);if(!v)return;
+  v.date=document.getElementById('edit-date').value;
+  v.name=document.getElementById('edit-name').value;
+  autoYear(document.getElementById('edit-year'));
+  v.year=document.getElementById('edit-year').value;
+  v.mileage=document.getElementById('edit-mileage').value;
+  v.plate=document.getElementById('edit-plate').value;
+  v.cost=Number(document.getElementById('edit-cost').value)||0;
+  v.inspect=document.getElementById('edit-inspect').value;
+  v.note=document.getElementById('edit-note').value;
+  v.prevName=document.getElementById('edit-prev-name').value;
+  v.prevPhone=document.getElementById('edit-prev-phone').value;
+  const parts=[];
+  document.querySelectorAll('#edit-parts-rows .data-row').forEach(r=>{const ins=r.querySelectorAll('input');const n=ins[0]?.value.trim();if(n)parts.push({name:n,amount:Number(ins[1]?.value)||0,note:ins[2]?.value.trim()||''})});
+  v.parts=parts;v.partsTotal=parts.reduce((s,p)=>s+p.amount,0);v.totalCost=v.cost+v.partsTotal;
+  save().then(()=>toast("💾 已儲存")).catch(()=>toast("❌ 儲存失敗",false));renderStock();updateStockStats();closeEditModal();toast('✅ 已更新！');
+}
+
+function renderStock(){
+  const search=document.getElementById('stock-search').value.toLowerCase();
+  let rows=db.stock.filter(v=>!search||v.name.toLowerCase().includes(search)||(v.plate||'').toLowerCase().includes(search));
+  const tbody=document.getElementById('stock-body'),empty=document.getElementById('stock-empty');
+  if(!rows.length){tbody.innerHTML='';empty.style.display='';return}
+  empty.style.display='none';
+  const now=new Date();
+  tbody.innerHTML=rows.map(v=>{
+    let insp='<span style="color:var(--muted)">未設定</span>';
+    if(v.inspect){const diff=Math.ceil((new Date(v.inspect)-now)/86400000);if(diff<0)insp=`<span class="badge badge-overdue">逾期${Math.abs(diff)}天</span>`;else if(diff<=30)insp=`<span class="badge badge-alert">⚠️${diff}天後</span>`;else insp=`<span class="badge badge-ok">${v.inspect}</span>`}
+    const ph=v.parts&&v.parts.length?v.parts.map(p=>`<div style="font-size:11px;color:var(--muted)">${p.name} ${fmt(p.amount)}</div>`).join(''):'—';
+    return`<tr><td style="color:var(--muted);white-space:nowrap">${v.date}</td><td><strong>${v.name}</strong></td><td style="color:var(--muted)">${v.year||'—'}</td><td>${v.mileage?Number(v.mileage).toLocaleString()+' km':'—'}</td><td style="color:var(--pink3)">${v.plate||'—'}</td><td><span class="money neu">${fmt(v.cost)}</span></td><td>${ph}</td><td><span class="money neg">${fmt(v.totalCost)}</span></td><td>${insp}</td><td style="color:var(--muted);font-size:12px">${v.note||'—'}</td><td style="white-space:nowrap"><button class="btn btn-edit" onclick="editStock(${v.id})" style="margin-right:4px">編輯</button><button class="btn btn-sell" onclick="openSellModal(${v.id})" style="margin-right:4px">售出</button><button class="btn btn-danger" onclick="deleteStock(${v.id})">刪除</button></td></tr>`;
+  }).join('');
+}
+
+function updateStockStats(){
+  document.getElementById('s-cnt').textContent=db.stock.length;
+  document.getElementById('s-cost').textContent=fmt(db.stock.reduce((s,v)=>s+v.totalCost,0));
+  const m=db.sold.filter(v=>v.date.startsWith(ym()));
+  document.getElementById('s-sold').textContent=m.length;
+  document.getElementById('s-profit').textContent=fmt(m.reduce((s,v)=>s+v.profit,0));
+}
+
+// ── 在庫總覽 ──
+function renderOverview(){
+  const search=(document.getElementById('ov-search').value||'').toLowerCase();
+  const sort=document.getElementById('ov-sort').value;
+  let rows=db.stock.filter(v=>!search||v.name.toLowerCase().includes(search)||(v.plate||'').toLowerCase().includes(search));
+  if(sort==='cost')rows.sort((a,b)=>b.totalCost-a.totalCost);
+  else if(sort==='inspect')rows.sort((a,b)=>{if(!a.inspect&&!b.inspect)return 0;if(!a.inspect)return 1;if(!b.inspect)return-1;return a.inspect.localeCompare(b.inspect)});
+  else rows.sort((a,b)=>b.date.localeCompare(a.date));
+  const grid=document.getElementById('ov-grid'),empty=document.getElementById('ov-empty');
+  let overdue=0,soon=0;
+  const now=new Date();
+  document.getElementById('ov-cnt').textContent=db.stock.length;
+  document.getElementById('ov-cost').textContent=fmt(db.stock.reduce((s,v)=>s+v.totalCost,0));
+  if(!rows.length){grid.innerHTML='';empty.style.display='';return}
+  empty.style.display='none';
+  grid.innerHTML=rows.map(v=>{
+    let inspClass='',inspBadge='',diff=null;
+    if(v.inspect){
+      diff=Math.ceil((new Date(v.inspect)-now)/86400000);
+      if(diff<0){inspClass='overdue';inspBadge=`<span class="ov-days overdue">🚨 逾期${Math.abs(diff)}天</span>`;overdue++}
+      else if(diff<=30){inspClass='soon';inspBadge=`<span class="ov-days soon">⚠️ ${diff}天後到期</span>`;soon++}
+      else{inspClass='ok';inspBadge=`<span class="ov-days ok">✅ ${diff}天後</span>`}
+    }else{inspBadge=`<span style="color:var(--muted);font-size:12px">未設定</span>`}
+    const partsHtml=v.parts&&v.parts.length?v.parts.map(p=>`<div class="ov-card-row"><span style="color:var(--muted);padding-left:10px">└ ${p.name}</span><span class="neg" style="font-size:12px">${fmt(p.amount)}</span></div>`).join(''):'';
+    return`<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;display:flex;align-items:center;gap:18px;flex-wrap:wrap">
+      <div style="min-width:140px;flex:2">
+        <span style="font-size:16px;font-weight:700;color:var(--text)">${v.name}</span>
+        ${v.year?`<span style="font-size:13px;color:var(--muted);margin-left:8px">${v.year}</span>`:''}
+      </div>
+      <div style="display:flex;gap:18px;flex-wrap:wrap;flex:3;align-items:center">
+        <span style="font-size:13px;color:var(--muted)">🛣 ${v.mileage?Number(v.mileage).toLocaleString()+' km':'—'}</span>
+        <span style="font-size:13px;color:var(--pink3)">🪪 ${v.plate||'—'}</span>
+        ${v.note?`<span style="font-size:12px;color:var(--muted)">📝 ${v.note}</span>`:''}
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('ov-overdue').textContent=overdue;
+  document.getElementById('ov-soon').textContent=soon;
+}
+
+// ── SELL ──
+function openSellModal(id){
+  const v=db.stock.find(v=>v.id===id);if(!v)return;
+  document.getElementById('sell-id').value=id;
+  document.getElementById('sell-car').value=`${v.name} ${v.year||''} ${v.plate||''}`;
+  document.getElementById('sell-date').value=today();
+  ['sell-income','sell-expense','sell-bonus','sell-note','sell-buyer-name','sell-buyer-phone','sell-mileage'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('sell-share-rows').innerHTML='';
+  document.getElementById('sell-modal').classList.add('show');
+}
+function closeModal(){document.getElementById('sell-modal').classList.remove('show')}
+function confirmSell(){
+  const id=Number(document.getElementById('sell-id').value);
+  const v=db.stock.find(v=>v.id===id);if(!v)return;
+  const income=Number(document.getElementById('sell-income').value)||0;
+  const expStr=document.getElementById('sell-expense').value.trim();
+  const expTotal=sumStr(expStr);
+  const shares=[];
+  document.querySelectorAll('#sell-share-rows .data-row').forEach(r=>{const ins=r.querySelectorAll('input');const who=ins[0]?.value.trim();if(who)shares.push({who,amount:Number(ins[1]?.value)||0})});
+  const shareTotal=shares.reduce((s,x)=>s+x.amount,0);
+  const sellMileage=document.getElementById('sell-mileage').value||v.mileage||'';
+  db.sold.push({id:Date.now(),date:document.getElementById('sell-date').value||today(),name:v.name,year:v.year,mileage:sellMileage,plate:v.plate,baseCost:v.cost,parts:v.parts||[],partsTotal:v.partsTotal||0,cost:v.totalCost,income,expense:expStr,expTotal,shares,shareTotal,profit:income-v.totalCost-expTotal-shareTotal,bonus:document.getElementById('sell-bonus').value.trim(),note:document.getElementById('sell-note').value.trim(),buyerName:document.getElementById('sell-buyer-name').value.trim(),buyerPhone:document.getElementById('sell-buyer-phone').value.trim()});
+  db.stock=db.stock.filter(v=>v.id!==id);
+  save().then(()=>toast("💾 已儲存")).catch(()=>toast("❌ 儲存失敗",false));renderStock();renderSold();updateStockStats();updateAlertBanner();closeModal();toast('✅ 車輛已售出！');
+}
+
+// ── SOLD ──
+function renderSold(){
+  const search=document.getElementById('sold-search').value.toLowerCase();
+  const month=document.getElementById('sold-month').value;
+  let rows=db.sold.filter(v=>{if(search&&!v.name.toLowerCase().includes(search))return false;if(month&&!v.date.startsWith(month))return false;return true});
+  const empty=document.getElementById('sold-empty'),wrap=document.getElementById('sold-records');
+  document.getElementById('ss-cnt').textContent=db.sold.length;
+  document.getElementById('ss-inc').textContent=fmt(db.sold.reduce((s,v)=>s+v.income,0));
+  document.getElementById('ss-cost').textContent=fmt(db.sold.reduce((s,v)=>s+v.cost,0));
+  document.getElementById('ss-profit').textContent=fmt(db.sold.reduce((s,v)=>s+v.profit,0));
+  if(!rows.length){wrap.innerHTML='';empty.style.display='';return}
+  empty.style.display='none';
+  wrap.innerHTML=rows.sort((a,b)=>b.date.localeCompare(a.date)).map(v=>{
+    const sharesHtml=v.shares&&v.shares.length?v.shares.map(s=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(61,31,74,.2);font-size:13px"><span style="color:var(--muted)">${s.who}</span><span style="color:var(--yellow)">${fmt(s.amount)}</span></div>`).join(''):'<span style="color:var(--muted);font-size:13px">無</span>';
+    return`<div class="rec-card">
+<div class="rec-head" onclick="toggleSold(${v.id})">
+<div style="flex:1"><span style="font-weight:700;font-size:15px">${v.name}</span><span style="color:var(--muted);font-size:13px;margin-left:8px">${v.year||''}</span><span style="color:var(--pink3);font-size:13px;margin-left:8px">${v.plate||''}</span><span style="color:var(--muted);font-size:12px;margin-left:8px">${v.date}</span></div>
+<div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap"><span class="money pos" style="font-size:14px">收 ${fmt(v.income)}</span><span class="money ${v.profit>=0?'pos':'neg'}" style="font-size:14px">淨 ${fmt(v.profit)}</span><button class="btn btn-edit" onclick="event.stopPropagation();editSold(${v.id})" style="margin-right:4px">編輯</button><button class="btn btn-danger" onclick="event.stopPropagation();deleteSold(${v.id})">刪除</button><span style="color:var(--muted)">▼</span></div>
+</div>
+<div class="rec-body" id="sold-${v.id}">
+${(v.buyerName||v.buyerPhone)?`<div style="background:rgba(244,114,182,.06);border:1px solid rgba(244,114,182,.2);border-radius:8px;padding:10px 14px;margin-bottom:12px;display:flex;gap:20px;flex-wrap:wrap"><span style="font-size:12px;color:var(--pink);font-weight:700">🧑 現車主</span><span style="font-size:13px">${v.buyerName||'—'}</span><span style="font-size:13px;color:var(--muted)">${v.buyerPhone||''}</span>${v.mileage?`<span style="font-size:13px;color:var(--muted)">售出里程：${Number(v.mileage).toLocaleString()} km</span>`:''}</div>`:''}
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+<div><div style="font-size:12px;color:var(--pink);font-weight:700;margin-bottom:8px">💰 金額明細</div>
+<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(61,31,74,.2);font-size:13px"><span style="color:var(--muted)">車輛成本</span><span class="neg">${fmt(v.cost)}</span></div>
+${v.parts&&v.parts.length?v.parts.map(p=>`<div style="display:flex;justify-content:space-between;padding:5px 0 5px 12px;border-bottom:1px solid rgba(61,31,74,.2);font-size:12px"><span style="color:var(--muted)">└ ${p.name}</span><span class="neg">${fmt(p.amount)}</span></div>`).join(''):''}
+<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(61,31,74,.2);font-size:13px"><span style="color:var(--muted)">收入</span><span class="pos">${fmt(v.income)}</span></div>
+<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(61,31,74,.2);font-size:13px"><span style="color:var(--muted)">支出/過戶</span><span class="neg">${v.expense?v.expense:'—'}</span></div>
+<div style="display:flex;justify-content:space-between;padding:5px 0;font-size:13px;font-weight:700"><span style="color:var(--muted)">淨利潤</span><span class="${v.profit>=0?'pos':'neg'}">${fmt(v.profit)}</span></div></div>
+<div><div style="font-size:12px;color:var(--pink);font-weight:700;margin-bottom:8px">💸 分潤明細</div>
+${sharesHtml}
+${v.bonus?`<div style="margin-top:10px;font-size:12px;color:var(--pink);font-weight:700">🎁 獎金</div><div style="font-size:13px;color:var(--muted);margin-top:4px">${v.bonus}</div>`:''}</div>
+</div>${v.note?`<div style="margin-top:10px;font-size:13px;color:var(--muted)">📝 ${v.note}</div>`:''}
+</div></div>`;
+  }).join('');
+}
+function toggleSold(id){const b=document.getElementById('sold-'+id);if(b)b.classList.toggle('open')}
+function deleteSold(id){if(!confirm('確定刪除？'))return;db.sold=db.sold.filter(v=>v.id!==id);save().then(()=>toast("💾 已儲存")).catch(()=>toast("❌ 儲存失敗",false));renderSold();updateStockStats();toast('已刪除',false)}
+
+function editSold(id){
+  const v=db.sold.find(v=>v.id===id);if(!v)return;
+  document.getElementById('sold-edit-id').value=id;
+  document.getElementById('sold-edit-date').value=v.date||'';
+  document.getElementById('sold-edit-name').value=v.name||'';
+  document.getElementById('sold-edit-year').value=v.year||'';
+  document.getElementById('sold-edit-mileage').value=v.mileage||'';
+  document.getElementById('sold-edit-plate').value=v.plate||'';
+  document.getElementById('sold-edit-cost').value=v.baseCost||v.cost||0;
+  document.getElementById('sold-edit-income').value=v.income||0;
+  document.getElementById('sold-edit-expense').value=v.expense||'';
+  document.getElementById('sold-edit-bonus').value=v.bonus||'';
+  document.getElementById('sold-edit-note').value=v.note||'';
+  document.getElementById('sold-edit-buyer-name').value=v.buyerName||'';
+  document.getElementById('sold-edit-buyer-phone').value=v.buyerPhone||'';
+  const pwrap=document.getElementById('sold-edit-parts-rows');pwrap.innerHTML='';
+  (v.parts||[]).forEach(p=>makeRow(pwrap,[{p:'耗材/支出項目名稱',v:p.name},{t:'number',p:'0',w:'150px',v:p.amount},{p:'備註',w:'180px',v:p.note||''}],null));
+  const swrap=document.getElementById('sold-edit-share-rows');swrap.innerHTML='';
+  (v.shares||[]).forEach(s=>makeRow(swrap,[{p:'給誰',v:s.who},{t:'number',p:'0',w:'150px',v:s.amount}],null));
+  document.getElementById('sold-edit-modal').classList.add('show');
+}
+function closeSoldEditModal(){document.getElementById('sold-edit-modal').classList.remove('show')}
+function addSoldEditShareRow(){makeRow(document.getElementById('sold-edit-share-rows'),[{p:'給誰（例：小熊）'},{t:'number',p:'0',w:'150px'}],null)}
+function addSoldEditPartRow(){makeRow(document.getElementById('sold-edit-parts-rows'),[{p:'耗材/支出項目名稱'},{t:'number',p:'0',w:'150px'},{p:'備註',w:'180px'}],null)}
+function confirmSoldEdit(){
+  const id=Number(document.getElementById('sold-edit-id').value);
+  const v=db.sold.find(v=>v.id===id);if(!v)return;
+  v.date=document.getElementById('sold-edit-date').value;
+  v.name=document.getElementById('sold-edit-name').value;
+  v.year=document.getElementById('sold-edit-year').value;
+  v.mileage=document.getElementById('sold-edit-mileage').value;
+  v.plate=document.getElementById('sold-edit-plate').value;
+  v.baseCost=Number(document.getElementById('sold-edit-cost').value)||0;
+  const parts=[];
+  document.querySelectorAll('#sold-edit-parts-rows .data-row').forEach(r=>{const ins=r.querySelectorAll('input');const n=ins[0]?.value.trim();if(n)parts.push({name:n,amount:Number(ins[1]?.value)||0,note:ins[2]?.value.trim()||''})});
+  v.parts=parts;v.partsTotal=parts.reduce((s,p)=>s+p.amount,0);v.cost=v.baseCost+v.partsTotal;
+  v.income=Number(document.getElementById('sold-edit-income').value)||0;
+  const expStr=document.getElementById('sold-edit-expense').value.trim();
+  v.expense=expStr;v.expTotal=sumStr(expStr);
+  const shares=[];
+  document.querySelectorAll('#sold-edit-share-rows .data-row').forEach(r=>{const ins=r.querySelectorAll('input');const who=ins[0]?.value.trim();if(who)shares.push({who,amount:Number(ins[1]?.value)||0})});
+  v.shares=shares;v.shareTotal=shares.reduce((s,x)=>s+x.amount,0);
+  v.bonus=document.getElementById('sold-edit-bonus').value.trim();
+  v.note=document.getElementById('sold-edit-note').value.trim();
+  v.buyerName=document.getElementById('sold-edit-buyer-name').value.trim();
+  v.buyerPhone=document.getElementById('sold-edit-buyer-phone').value.trim();
+  v.profit=v.income-v.cost-v.expTotal-v.shareTotal;
+  save().then(()=>toast("💾 已儲存")).catch(()=>toast("❌ 儲存失敗",false));renderSold();updateStockStats();closeSoldEditModal();toast('✅ 已更新！');
+}
+
+// ── MAINT ──
+function addMaint(){
+  const car=document.getElementById('mt-car').value.trim();
+  if(!car){toast('請填入車輛名稱',false);return}
+  const items=[];
+  document.querySelectorAll('#mt-rows .data-row').forEach(r=>{const ins=r.querySelectorAll('input');const n=ins[0]?.value.trim();if(n)items.push({name:n,price:Number(ins[1]?.value)||0,cost:Number(ins[2]?.value)||0})});
+  if(!items.length){toast('請至少新增一個保養項目',false);return}
+  const shares=[];
+  document.querySelectorAll('#mt-share-rows .data-row').forEach(r=>{const ins=r.querySelectorAll('input');const who=ins[0]?.value.trim();if(who)shares.push({who,amount:Number(ins[1]?.value)||0})});
+  const tp=items.reduce((s,i)=>s+i.price,0),tc=items.reduce((s,i)=>s+i.cost,0),ts=shares.reduce((s,x)=>s+x.amount,0);
+  db.maint.push({id:Date.now(),date:document.getElementById('mt-date').value||today(),car,year:document.getElementById('mt-year').value.trim(),items,shares,totalPrice:tp,totalCost:tc,totalShare:ts,profit:tp-tc-ts,note:document.getElementById('mt-note').value.trim()});
+  save().then(()=>toast("💾 已儲存")).catch(()=>toast("❌ 儲存失敗",false));renderMaint();updateMaintStats();populateMonths('mt-mf',db.maint);
+  toast('✅ 已新增保養/改裝記錄！');
+  ['mt-car','mt-year','mt-note'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('mt-rows').innerHTML='';document.getElementById('mt-share-rows').innerHTML='';updateMtSum();
+}
+
+function deleteMaint(id){if(!confirm('確定刪除？'))return;db.maint=db.maint.filter(m=>m.id!==id);save().then(()=>toast("💾 已儲存")).catch(()=>toast("❌ 儲存失敗",false));renderMaint();updateMaintStats();toast('已刪除',false)}
+
+function editMaint(id){
+  const m=db.maint.find(m=>m.id===id);if(!m)return;
+  document.getElementById('maint-edit-id').value=id;
+  document.getElementById('maint-edit-date').value=m.date||'';
+  document.getElementById('maint-edit-car').value=m.car||'';
+  document.getElementById('maint-edit-year').value=m.year||'';
+  document.getElementById('maint-edit-note').value=m.note||'';
+  const iWrap=document.getElementById('maint-edit-rows');iWrap.innerHTML='';
+  (m.items||[]).forEach(i=>makeRow(iWrap,[{p:'項目名稱',v:i.name},{t:'number',p:'0',w:'150px',v:i.price},{t:'number',p:'0',w:'150px',v:i.cost}],null));
+  const sWrap=document.getElementById('maint-edit-share-rows');sWrap.innerHTML='';
+  (m.shares||[]).forEach(s=>makeRow(sWrap,[{p:'給誰',v:s.who},{t:'number',p:'0',w:'150px',v:s.amount}],null));
+  document.getElementById('maint-edit-modal').classList.add('show');
+}
+function closeMaintEditModal(){document.getElementById('maint-edit-modal').classList.remove('show')}
+function confirmMaintEdit(){
+  const id=Number(document.getElementById('maint-edit-id').value);
+  const m=db.maint.find(m=>m.id===id);if(!m)return;
+  m.date=document.getElementById('maint-edit-date').value;
+  m.car=document.getElementById('maint-edit-car').value;
+  m.year=document.getElementById('maint-edit-year').value;
+  m.note=document.getElementById('maint-edit-note').value;
+  const items=[];
+  document.querySelectorAll('#maint-edit-rows .data-row').forEach(r=>{const ins=r.querySelectorAll('input');const n=ins[0]?.value.trim();if(n)items.push({name:n,price:Number(ins[1]?.value)||0,cost:Number(ins[2]?.value)||0})});
+  m.items=items;
+  m.totalPrice=items.reduce((s,i)=>s+i.price,0);
+  m.totalCost=items.reduce((s,i)=>s+i.cost,0);
+  const shares=[];
+  document.querySelectorAll('#maint-edit-share-rows .data-row').forEach(r=>{const ins=r.querySelectorAll('input');const who=ins[0]?.value.trim();if(who)shares.push({who,amount:Number(ins[1]?.value)||0})});
+  m.shares=shares;m.totalShare=shares.reduce((s,x)=>s+x.amount,0);
+  m.profit=m.totalPrice-m.totalCost-m.totalShare;
+  save().then(()=>toast("💾 已儲存")).catch(()=>toast("❌ 儲存失敗",false));renderMaint();updateMaintStats();closeMaintEditModal();toast('✅ 保養記錄已更新！');
+}
+
+function renderMaint(){
+  const search=document.getElementById('mt-search').value.toLowerCase();
+  const month=document.getElementById('mt-mf').value;
+  let rows=db.maint.filter(m=>{if(search&&!m.car.toLowerCase().includes(search)&&!m.items.some(i=>i.name.toLowerCase().includes(search)))return false;if(month&&!m.date.startsWith(month))return false;return true});
+  const empty=document.getElementById('mt-empty'),wrap=document.getElementById('mt-records');
+  if(!rows.length){wrap.innerHTML='';empty.style.display='';return}
+  empty.style.display='none';
+  wrap.innerHTML=rows.sort((a,b)=>b.date.localeCompare(a.date)).map(m=>`
+<div class="rec-card">
+<div class="rec-head" onclick="toggleRec(${m.id})">
+<div style="flex:1"><span style="font-weight:700;font-size:15px">${m.car}</span><span style="color:var(--muted);font-size:13px;margin-left:8px">${m.year||''}</span><span style="color:var(--muted);font-size:13px;margin-left:8px">${m.date}</span>${m.note?`<span style="color:var(--muted);font-size:12px;margin-left:8px">📝 ${m.note}</span>`:''}</div>
+<div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap"><span class="money pos" style="font-size:14px">收 ${fmt(m.totalPrice)}</span><span class="money ${m.profit>=0?'pos':'neg'}" style="font-size:14px">淨 ${fmt(m.profit)}</span><button class="btn btn-edit" onclick="event.stopPropagation();editMaint(${m.id})" style="margin-right:4px">編輯</button><button class="btn btn-danger" onclick="event.stopPropagation();deleteMaint(${m.id})">刪除</button><span style="color:var(--muted)">▼</span></div>
+</div>
+<div class="rec-body" id="rec-${m.id}">
+<table class="sub-table"><thead><tr><th>項目</th><th>收費</th><th>成本</th><th>利潤</th></tr></thead><tbody>
+${m.items.map(i=>`<tr><td>${i.name}</td><td class="pos">${fmt(i.price)}</td><td class="neg">${fmt(i.cost)}</td><td class="${i.price-i.cost>=0?'pos':'neg'}">${fmt(i.price-i.cost)}</td></tr>`).join('')}
+<tr style="background:var(--surface2)"><td style="font-weight:700">合計</td><td class="pos" style="font-weight:700">${fmt(m.totalPrice)}</td><td class="neg" style="font-weight:700">${fmt(m.totalCost)}</td><td></td></tr>
+</tbody></table>
+${m.shares&&m.shares.length?`<div style="margin-top:6px"><span style="font-size:12px;color:var(--pink);font-weight:700">💸 分潤：</span>${m.shares.map(s=>`<span style="font-size:13px;color:var(--muted);margin-right:12px">${s.who} ${fmt(s.amount)}</span>`).join('')}</div>`:''}
+<div style="margin-top:8px;font-size:13px"><span style="color:var(--muted)">淨利潤：</span><span class="money ${m.profit>=0?'pos':'neg'}">${fmt(m.profit)}</span></div>
+</div>
+</div>`).join('');
+}
+function toggleRec(id){const b=document.getElementById('rec-'+id);if(b)b.classList.toggle('open')}
+
+function updateMaintStats(){
+  const m=db.maint.filter(x=>x.date.startsWith(ym()));
+  document.getElementById('sm-cnt').textContent=m.length;
+  document.getElementById('sm-inc').textContent=fmt(m.reduce((s,x)=>s+x.totalPrice,0));
+  document.getElementById('sm-cost').textContent=fmt(m.reduce((s,x)=>s+x.totalCost,0));
+  document.getElementById('sm-profit').textContent=fmt(m.reduce((s,x)=>s+x.profit,0));
+}
+
+function populateMonths(selId,arr){
+  const months=[...new Set(arr.map(v=>v.date.slice(0,7)))].sort().reverse();
+  const sel=document.getElementById(selId),cur=sel.value;
+  sel.innerHTML='<option value="">全部月份</option>'+months.map(m=>`<option value="${m}"${m===cur?' selected':''}>${m}</option>`).join('');
+}
+
+// ── INSPECTION ──
+function renderInspection(){
+  const now=new Date();
+  const search=(document.getElementById('insp-search')?.value||'').toLowerCase();
+  const statusFilter=document.getElementById('insp-status-filter')?.value||'';
+  const list=document.getElementById('insp-list'),empty=document.getElementById('insp-empty');
+  if(!db.stock.length){list.innerHTML='';empty.style.display='';return}
+  empty.style.display='none';
+  let over=0,soon=0,ok=0,none=0;
+  let items=db.stock.map(v=>{
+    if(!v.inspect){none++;return{v,status:'none',diff:null}}
+    const diff=Math.ceil((new Date(v.inspect)-now)/86400000);
+    if(diff<0){over++;return{v,status:'overdue',diff}}
+    if(diff<=30){soon++;return{v,status:'soon',diff}}
+    ok++;return{v,status:'ok',diff}
+  });
+  document.getElementById('io').textContent=over;
+  document.getElementById('is').textContent=soon;
+  document.getElementById('ik').textContent=ok;
+  document.getElementById('in2').textContent=none;
+
+  // 篩選
+  if(search)items=items.filter(({v})=>v.name.toLowerCase().includes(search)||(v.plate||'').toLowerCase().includes(search));
+  if(statusFilter)items=items.filter(({status})=>status===statusFilter);
+
+  if(!items.length){list.innerHTML='<div class="empty" style="padding:40px"><div class="icon">🔍</div><p>找不到符合的車輛</p></div>';return}
+
+  const order={overdue:0,soon:1,ok:2,none:3};
+  items.sort((a,b)=>order[a.status]-order[b.status]);
+
+  list.innerHTML=items.map(({v,status,diff})=>{
+    let icon='',statusLabel='',statusClass='',progressPct=0,progressColor='',progressFrom='',progressTo='';
+    if(status==='overdue'){
+      icon='🚨';statusClass='overdue';
+      statusLabel=`已逾期 ${Math.abs(diff)} 天`;
+      progressPct=100;progressColor='var(--red)';
+      progressFrom='定檢到期';progressTo=`已逾 ${Math.abs(diff)} 天`;
+    } else if(status==='soon'){
+      icon='⚠️';statusClass='soon';
+      statusLabel=`${diff} 天後到期`;
+      progressPct=Math.round((1-diff/30)*100);progressColor='var(--yellow)';
+      progressFrom='30天警戒';progressTo=`剩 ${diff} 天`;
+    } else if(status==='ok'){
+      icon='✅';statusClass='ok';
+      statusLabel=`距到期 ${diff} 天`;
+      const maxDays=365;progressPct=Math.max(0,Math.round((1-diff/maxDays)*100));progressColor='var(--green)';
+      progressFrom='安全';progressTo=`${diff} 天後`;
+    } else {
+      icon='📋';statusClass='none';
+      statusLabel='尚未設定定檢日期';
+      progressPct=0;progressColor='var(--muted)';
+      progressFrom='未知';progressTo='—';
+    }
+    return`<div class="insp-card status-${status}">
+<div class="insp-card-body">
+<div class="insp-icon-wrap ${statusClass}">${icon}</div>
+<div class="insp-info">
+<div class="insp-car-name">${v.name}</div>
+<div class="insp-meta">
+${v.year?`<span>📅 ${v.year}</span>`:''}
+${v.plate?`<span>🪪 ${v.plate}</span>`:''}
+${v.inspect?`<span>🗓 ${v.inspect}</span>`:''}
+</div>
+<div class="insp-status-text ${statusClass}">${statusLabel}</div>
+</div>
+${status!=='none'?`<div class="insp-progress-wrap">
+<div class="insp-progress-label"><span>${progressFrom}</span><span>${progressTo}</span></div>
+<div class="insp-progress-bar"><div class="insp-progress-fill" style="width:${progressPct}%;background:${progressColor}"></div></div>
+</div>`:''}
+<div class="insp-btn-wrap">
+<button class="btn-insp-update" onclick="openInspModal(${v.id})">📅 更新定檢日</button>
+</div>
+</div>
+</div>`;
+  }).join('');
+}
+
+function openInspModal(id){
+  const v=db.stock.find(v=>v.id===id);if(!v)return;
+  const now=new Date();
+  document.getElementById('insp-modal-id').value=id;
+  document.getElementById('insp-modal-name').textContent=v.name;
+  document.getElementById('insp-modal-meta').textContent=[v.year,v.plate].filter(Boolean).join(' · ')||'無其他資料';
+  document.getElementById('insp-modal-current').textContent=v.inspect||'尚未設定';
+  // 狀態文字
+  const statusEl=document.getElementById('insp-modal-status');
+  if(!v.inspect){statusEl.textContent='未設定';statusEl.style.color='var(--muted)';document.getElementById('insp-modal-icon').textContent='📋';}
+  else{
+    const diff=Math.ceil((new Date(v.inspect)-now)/86400000);
+    if(diff<0){statusEl.textContent=`🚨 已逾期 ${Math.abs(diff)} 天`;statusEl.style.color='var(--red)';document.getElementById('insp-modal-icon').textContent='🚨';}
+    else if(diff<=30){statusEl.textContent=`⚠️ ${diff} 天後到期`;statusEl.style.color='var(--yellow)';document.getElementById('insp-modal-icon').textContent='⚠️';}
+    else{statusEl.textContent=`✅ 距到期 ${diff} 天`;statusEl.style.color='var(--green)';document.getElementById('insp-modal-icon').textContent='✅';}
+  }
+  // 預設日期：從今天+1年
+  const def=v.inspect||today();
+  document.getElementById('insp-modal-date').value=def;
+  document.getElementById('insp-modal').classList.add('show');
+}
+
+function setInspQuick(months){
+  const base=new Date();
+  base.setMonth(base.getMonth()+months);
+  document.getElementById('insp-modal-date').value=base.toISOString().slice(0,10);
+}
+
+function closeInspModal(){document.getElementById('insp-modal').classList.remove('show')}
+
+function confirmInspUpdate(){
+  const id=Number(document.getElementById('insp-modal-id').value);
+  const v=db.stock.find(v=>v.id===id);if(!v)return;
+  const d=document.getElementById('insp-modal-date').value;
+  if(!d){toast('請選擇日期',false);return}
+  v.inspect=d;save().then(()=>toast("💾 已儲存")).catch(()=>toast("❌ 儲存失敗",false));renderInspection();updateAlertBanner();closeInspModal();toast('✅ 定檢日期已更新！');
+}
+
+function updateInspect(id){openInspModal(id)}
+function updateAlertBanner(){const now=new Date(),count=db.stock.filter(v=>{if(!v.inspect)return false;return Math.ceil((new Date(v.inspect)-now)/86400000)<=30}).length;document.getElementById('alert-banner').style.display=count?'flex':'none';document.getElementById('alert-count').textContent=count}
+
+// ── REPORT ──
+function populateReportMonths(){
+  const allM=[...new Set([...db.sold.map(v=>v.date.slice(0,7)),...db.maint.map(m=>m.date.slice(0,7))])].sort().reverse();
+  const sel=document.getElementById('rp-month'),cur=sel.value;
+  sel.innerHTML='<option value="">全部月份</option>'+allM.map(m=>`<option value="${m}"${m===cur?' selected':''}>${m}</option>`).join('');
+}
+
+// 分潤彙總：依人名加總所有分潤
+function buildShareSummary(soldRows, maintRows){
+  const map={};
+  soldRows.forEach(v=>{
+    (v.shares||[]).forEach(s=>{
+      if(!s.who)return;
+      if(!map[s.who])map[s.who]={sold:[],maint:[],total:0};
+      map[s.who].sold.push({label:`${v.date} ${v.name}`,amount:s.amount});
+      map[s.who].total+=s.amount;
+    });
+  });
+  maintRows.forEach(m=>{
+    (m.shares||[]).forEach(s=>{
+      if(!s.who)return;
+      if(!map[s.who])map[s.who]={sold:[],maint:[],total:0};
+      map[s.who].maint.push({label:`${m.date} ${m.car}`,amount:s.amount});
+      map[s.who].total+=s.amount;
+    });
+  });
+  return map;
+}
+
+function renderReport(){
+  const filter=document.getElementById('rp-month').value;
+  const soldRows=filter?db.sold.filter(v=>v.date.startsWith(filter)):db.sold;
+  const maintRows=filter?db.maint.filter(m=>m.date.startsWith(filter)):db.maint;
+  const expRows=filter?db.expense.filter(e=>e.date.startsWith(filter)):db.expense;
+  const empty=document.getElementById('rp-empty'),content=document.getElementById('rp-content');
+  if(!soldRows.length&&!maintRows.length&&!expRows.length){content.innerHTML='';empty.style.display='';return}
+  empty.style.display='none';
+
+  const cm=ym();
+  const cmS=db.sold.filter(v=>v.date.startsWith(cm)),cmM=db.maint.filter(m=>m.date.startsWith(cm));
+  const cmE=db.expense.filter(e=>e.date.startsWith(cm));
+  const cmExpTotal=cmE.reduce((s,e)=>s+e.amount,0);
+  document.getElementById('rp-inc').textContent=fmt(cmS.reduce((s,v)=>s+v.income,0)+cmM.reduce((s,m)=>s+m.totalPrice,0));
+  document.getElementById('rp-cost').textContent=fmt(cmS.reduce((s,v)=>s+v.cost,0)+cmM.reduce((s,m)=>s+m.totalCost,0)+cmExpTotal);
+  document.getElementById('rp-share').textContent=fmt(cmS.reduce((s,v)=>s+(v.shareTotal||0),0)+cmM.reduce((s,m)=>s+(m.totalShare||0),0));
+  document.getElementById('rp-profit').textContent=fmt(cmS.reduce((s,v)=>s+v.profit,0)+cmM.reduce((s,m)=>s+m.profit,0)-cmExpTotal);
+
+  const shareMap=buildShareSummary(soldRows,maintRows);
+  const shareHtml=Object.keys(shareMap).length?`
+<div class="card" style="margin-bottom:20px">
+<div class="card-title">💸 分潤明細（每人各拿多少）</div>
+${Object.entries(shareMap).sort((a,b)=>b[1].total-a[1].total).map(([who,data])=>`
+<div class="share-person-card">
+<div class="share-person-name">👤 ${who} — 合計 <span style="color:var(--yellow)">${fmt(data.total)}</span></div>
+${data.sold.length?`<div style="font-size:11px;color:var(--pink);font-weight:700;margin-bottom:6px">🏍️ 售車分潤</div>${data.sold.map(d=>`<div class="share-detail-row"><span style="color:var(--muted)">${d.label}</span><span style="color:var(--yellow)">${fmt(d.amount)}</span></div>`).join('')}`:''}
+${data.maint.length?`<div style="font-size:11px;color:var(--pink);font-weight:700;margin-bottom:6px;margin-top:${data.sold.length?8:0}px">🔧 保養分潤</div>${data.maint.map(d=>`<div class="share-detail-row"><span style="color:var(--muted)">${d.label}</span><span style="color:var(--yellow)">${fmt(d.amount)}</span></div>`).join('')}`:''}
+</div>`).join('')}
+</div>`:'';
+
+  if(filter){
+    const sInc=soldRows.reduce((s,v)=>s+v.income,0),sCost=soldRows.reduce((s,v)=>s+v.cost,0),sExp=soldRows.reduce((s,v)=>s+(v.expTotal||0),0),sShare=soldRows.reduce((s,v)=>s+(v.shareTotal||0),0),sProfit=soldRows.reduce((s,v)=>s+v.profit,0);
+    const mInc=maintRows.reduce((s,m)=>s+m.totalPrice,0),mCost=maintRows.reduce((s,m)=>s+m.totalCost,0),mShare=maintRows.reduce((s,m)=>s+(m.totalShare||0),0),mProfit=maintRows.reduce((s,m)=>s+m.profit,0);
+    const eTotal=expRows.reduce((s,e)=>s+e.amount,0);
+    const tProfit=sProfit+mProfit-eTotal,tShare=sShare+mShare;
+    content.innerHTML=`
+${shareHtml}
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+<div class="card"><div class="card-title">🏍️ 售出車輛 (${soldRows.length} 台)</div>
+<div class="summary-bar" style="margin-bottom:0">
+<div class="si"><span class="sl">收入</span><span class="sv pos">${fmt(sInc)}</span></div>
+<div class="si"><span class="sl">成本</span><span class="sv neg">${fmt(sCost)}</span></div>
+<div class="si"><span class="sl">支出</span><span class="sv neg">${fmt(sExp)}</span></div>
+<div class="si"><span class="sl">分潤</span><span class="sv" style="color:var(--yellow)">${fmt(sShare)}</span></div>
+<div class="si"><span class="sl">淨利潤</span><span class="sv ${sProfit>=0?'pos':'neg'}">${fmt(sProfit)}</span></div>
+</div>
+${soldRows.length?`<div style="margin-top:14px">${soldRows.map(v=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(61,31,74,.3);font-size:13px"><span style="color:var(--muted)">${v.date} ${v.name}</span><span class="money ${v.profit>=0?'pos':'neg'}" style="font-size:13px">${fmt(v.profit)}</span></div>`).join('')}</div>`:''}
+</div>
+<div class="card"><div class="card-title">🔧 保養/改裝 (${maintRows.length} 筆)</div>
+<div class="summary-bar" style="margin-bottom:0">
+<div class="si"><span class="sl">收入</span><span class="sv pos">${fmt(mInc)}</span></div>
+<div class="si"><span class="sl">成本</span><span class="sv neg">${fmt(mCost)}</span></div>
+<div class="si"><span class="sl">分潤</span><span class="sv" style="color:var(--yellow)">${fmt(mShare)}</span></div>
+<div class="si"><span class="sl">淨利潤</span><span class="sv ${mProfit>=0?'pos':'neg'}">${fmt(mProfit)}</span></div>
+</div>
+${maintRows.length?`<div style="margin-top:14px">${maintRows.map(m=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(61,31,74,.3);font-size:13px"><span style="color:var(--muted)">${m.date} ${m.car}</span><span class="money ${m.profit>=0?'pos':'neg'}" style="font-size:13px">${fmt(m.profit)}</span></div>`).join('')}</div>`:''}
+</div>
+</div>
+${expRows.length?`<div class="card" style="margin-bottom:20px"><div class="card-title">💸 其他支出 (${expRows.length} 筆)</div>
+<div style="margin-top:8px">${expRows.map(e=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(61,31,74,.3);font-size:13px"><span style="color:var(--muted)">${e.date} ${e.item}</span><span class="money neg" style="font-size:13px">${fmt(e.amount)}</span></div>`).join('')}</div>
+<div style="text-align:right;margin-top:10px;font-weight:700;color:var(--red)">合計：${fmt(eTotal)}</div>
+</div>`:''}
+<div class="card"><div class="card-title">📊 ${filter} 月份總計</div>
+<div class="summary-bar">
+<div class="si"><span class="sl">總收入</span><span class="sv pos">${fmt(sInc+mInc)}</span></div>
+<div class="si"><span class="sl">總成本</span><span class="sv neg">${fmt(sCost+mCost)}</span></div>
+<div class="si"><span class="sl">其他支出</span><span class="sv neg">${fmt(eTotal)}</span></div>
+<div class="si"><span class="sl">總分潤</span><span class="sv" style="color:var(--yellow)">${fmt(tShare)}</span></div>
+<div class="si"><span class="sl">🏆 淨利潤</span><span class="sv ${tProfit>=0?'pos':'neg'}" style="font-size:22px">${fmt(tProfit)}</span></div>
+</div>
+</div>`;
+  } else {
+    const allM=[...new Set([...db.sold.map(v=>v.date.slice(0,7)),...db.maint.map(m=>m.date.slice(0,7))])].sort().reverse();
+    // 全部月份時，彙總全部分潤
+    const allShareMap=buildShareSummary(db.sold,db.maint);
+    const allShareHtml=Object.keys(allShareMap).length?`
+<div class="card" style="margin-bottom:20px">
+<div class="card-title">💸 累計分潤總覽（所有時間）</div>
+<div style="display:flex;flex-wrap:wrap;gap:12px">
+${Object.entries(allShareMap).sort((a,b)=>b[1].total-a[1].total).map(([who,data])=>`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 18px;min-width:140px"><div style="font-size:13px;color:var(--muted)">${who}</div><div style="font-size:20px;font-weight:700;color:var(--yellow)">${fmt(data.total)}</div><div style="font-size:11px;color:var(--muted);margin-top:4px">售車${data.sold.length}筆 / 保養${data.maint.length}筆</div></div>`).join('')}
+</div>
+</div>`:'';
+    content.innerHTML=allShareHtml+`<div class="table-wrap"><table>
+<thead><tr><th>月份</th><th>售車收入</th><th>售車成本</th><th>售車利潤</th><th>保養收入</th><th>保養成本</th><th>保養利潤</th><th>總分潤</th><th>🏆 月淨利潤</th></tr></thead>
+<tbody>${allM.map(m=>{
+      const sv=db.sold.filter(v=>v.date.startsWith(m)),mt=db.maint.filter(x=>x.date.startsWith(m));
+      const sI=sv.reduce((s,v)=>s+v.income,0),sC=sv.reduce((s,v)=>s+v.cost,0),sP=sv.reduce((s,v)=>s+v.profit,0);
+      const mI=mt.reduce((s,x)=>s+x.totalPrice,0),mC=mt.reduce((s,x)=>s+x.totalCost,0),mP=mt.reduce((s,x)=>s+x.profit,0);
+      const tSh=sv.reduce((s,v)=>s+(v.shareTotal||0),0)+mt.reduce((s,x)=>s+(x.totalShare||0),0);
+      const tP=sP+mP;
+      return`<tr><td style="color:var(--pink);font-weight:700">${m}</td><td class="pos">${fmt(sI)}</td><td class="neg">${fmt(sC)}</td><td class="${sP>=0?'pos':'neg'}">${fmt(sP)}</td><td class="pos">${fmt(mI)}</td><td class="neg">${fmt(mC)}</td><td class="${mP>=0?'pos':'neg'}">${fmt(mP)}</td><td style="color:var(--yellow)">${fmt(tSh)}</td><td><span class="money ${tP>=0?'pos':'neg'}" style="font-size:16px">${fmt(tP)}</span></td></tr>`;
+    }).join('')}</tbody></table></div>`;
+  }
+}
+
+// ── 匯出/匯入（修復版）──
+function exportData(){
+  try{
+    const json=JSON.stringify(db,null,2);
+    const blob=new Blob([json],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;a.download='車輛備份_'+today()+'.json';
+    document.body.appendChild(a);a.click();
+    setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url)},100);
+    toast('✅ 備份已匯出！');
+  }catch(e){toast('❌ 匯出失敗：'+e.message,false)}
+}
+
+function importData(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const data=JSON.parse(ev.target.result);
+      if(typeof data!=='object'||data===null){toast('❌ 檔案格式不對！',false);return}
+      db.stock=Array.isArray(data.stock)?data.stock:[];
+      db.sold=Array.isArray(data.sold)?data.sold:[];
+      db.maint=Array.isArray(data.maint)?data.maint:[];
+      db.expense=Array.isArray(data.expense)?data.expense:[];
+      save().then(()=>toast("💾 已儲存")).catch(()=>toast("❌ 儲存失敗",false));
+      renderStock();updateStockStats();updateAlertBanner();
+      toast('✅ 資料匯入成功！共 '+(db.stock.length+db.sold.length+db.maint.length+db.expense.length)+' 筆');
+    }catch(err){toast('❌ 匯入失敗：'+err.message,false)}
+  };
+  reader.onerror=()=>toast('❌ 讀取檔案失敗',false);
+  reader.readAsText(file,'UTF-8');
+  e.target.value='';
+}
+
+// ── 手機同步 ──
+function renderSyncPage(){
+  document.getElementById('sy-stock').textContent=db.stock.length;
+  document.getElementById('sy-sold').textContent=db.sold.length;
+  document.getElementById('sy-maint').textContent=db.maint.length;
+  document.getElementById('sy-ver').textContent=today();
+}
+
+function copyJsonToClipboard(){
+  const json=JSON.stringify(db,null,2);
+  document.getElementById('sync-json-area').value=json;
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(json).then(()=>toast('✅ 已複製！貼到手機記事本，存為 .json 後匯入')).catch(()=>toast('請手動複製上方文字框內容'));
+  }else{
+    document.getElementById('sync-json-area').select();
+    document.execCommand('copy');
+    toast('✅ 已複製！貼到手機記事本，存為 .json 後匯入');
+  }
+}
+
+function importFromTextarea(){
+  const txt=document.getElementById('sync-json-area').value.trim();
+  if(!txt){toast('請先貼上 JSON 文字',false);return}
+  try{
+    const data=JSON.parse(txt);
+    if(typeof data!=='object'||data===null){toast('❌ 格式不對！',false);return}
+    db.stock=Array.isArray(data.stock)?data.stock:[];
+    db.sold=Array.isArray(data.sold)?data.sold:[];
+    db.maint=Array.isArray(data.maint)?data.maint:[];
+    db.expense=Array.isArray(data.expense)?data.expense:[];
+    save().then(()=>toast("💾 已儲存")).catch(()=>toast("❌ 儲存失敗",false));renderStock();updateStockStats();updateAlertBanner();
+    toast('✅ 資料匯入成功！共 '+(db.stock.length+db.sold.length+db.maint.length+db.expense.length)+' 筆');
+  }catch(err){toast('❌ 解析失敗：'+err.message,false)}
+}
+
+// ── 其他支出 ──
+function addExpense(){
+  const item=document.getElementById('ex-item').value.trim();
+  if(!item){toast('請填入支出項目',false);return}
+  const amount=Number(document.getElementById('ex-amount').value)||0;
+  if(!amount){toast('請填入金額',false);return}
+  db.expense.push({id:Date.now(),date:document.getElementById('ex-date').value||today(),item,cat:document.getElementById('ex-cat').value,amount,note:document.getElementById('ex-note').value.trim()});
+  save().then(()=>toast("💾 已儲存")).catch(()=>toast("❌ 儲存失敗",false));renderExpense();populateMonths('ex-month-filter',db.expense);
+  toast('✅ 支出已新增！');
+  ['ex-item','ex-amount','ex-note'].forEach(id=>document.getElementById(id).value='');
+}
+
+function deleteExpense(id){
+  if(!confirm('確定刪除此支出？'))return;
+  db.expense=db.expense.filter(e=>e.id!==id);
+  save().then(()=>toast("💾 已儲存")).catch(()=>toast("❌ 儲存失敗",false));renderExpense();populateMonths('ex-month-filter',db.expense);toast('已刪除',false);
+}
+
+function renderExpense(){
+  const search=(document.getElementById('ex-search').value||'').toLowerCase();
+  const month=document.getElementById('ex-month-filter').value;
+  const cat=document.getElementById('ex-cat-filter').value;
+  let rows=db.expense.filter(e=>{
+    if(search&&!e.item.toLowerCase().includes(search))return false;
+    if(month&&!e.date.startsWith(month))return false;
+    if(cat&&e.cat!==cat)return false;
+    return true;
+  });
+  const tbody=document.getElementById('ex-body'),empty=document.getElementById('ex-empty');
+  const curM=ym();
+  const thisMonth=db.expense.filter(e=>e.date.startsWith(curM));
+  document.getElementById('ex-cnt').textContent=thisMonth.length;
+  document.getElementById('ex-total').textContent=fmt(thisMonth.reduce((s,e)=>s+e.amount,0));
+  document.getElementById('ex-all').textContent=fmt(db.expense.reduce((s,e)=>s+e.amount,0));
+  const cats=new Set(thisMonth.map(e=>e.cat));
+  document.getElementById('ex-cats').textContent=cats.size;
+  if(!rows.length){tbody.innerHTML='';empty.style.display='';return}
+  empty.style.display='none';
+  const catIcon={油料:'⛽',工具:'🔧',雜費:'📦',其他:'💬'};
+  tbody.innerHTML=rows.sort((a,b)=>b.date.localeCompare(a.date)).map(e=>`<tr>
+    <td style="color:var(--muted);white-space:nowrap">${e.date}</td>
+    <td><strong>${e.item}</strong></td>
+    <td><span class="badge badge-ok">${catIcon[e.cat]||''}${e.cat}</span></td>
+    <td><span class="money neg">${fmt(e.amount)}</span></td>
+    <td style="color:var(--muted);font-size:12px">${e.note||'—'}</td>
+    <td><button class="btn btn-danger" onclick="deleteExpense(${e.id})">刪除</button></td>
+  </tr>`).join('');
+}
+
+// ── 初始化 ──
+document.getElementById('sv-date').value=today();
+document.getElementById('mt-date').value=today();
+document.getElementById('ex-date').value=today();
+document.body.style.opacity='0.5';
+loadFromCloud().then(()=>{
+  document.body.style.opacity='1';
+  renderStock();updateStockStats();updateAlertBanner();
+  toast('✅ 資料已從雲端載入');
+}).catch(()=>{
+  document.body.style.opacity='1';
+  toast('❌ 雲端載入失敗，請重新整理',false);
+});
+</script>
+</body>
+</html>
