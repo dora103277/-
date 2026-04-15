@@ -372,7 +372,8 @@ if(sessionStorage.getItem('merged_auth')==='1')document.addEventListener('DOMCon
 <button class="tab" onclick="switchTab('expense')">💸 其他支出</button>
 <button class="tab" onclick="switchTab('inspection')">📅 定檢提醒</button>
 <button class="tab" onclick="switchTab('report')">📊 月報表</button>
-<button class="tab" onclick="switchTab('sync')">📱 手機同步</button>
+<button class="tab" onclick="switchTab('history')">🔍 車輛履歷</button>
+
 </div>
 
 <div class="container">
@@ -618,45 +619,17 @@ if(sessionStorage.getItem('merged_auth')==='1')document.addEventListener('DOMCon
 </div>
 </div>
 
-<!-- 手機同步 -->
-<div class="page" id="page-sync">
-<div class="stats">
-<div class="stat p"><div class="stat-label">在庫車輛</div><div class="stat-value" id="sy-stock">0</div></div>
-<div class="stat g"><div class="stat-label">售出記錄</div><div class="stat-value" id="sy-sold">0</div></div>
-<div class="stat b"><div class="stat-label">保養記錄</div><div class="stat-value" id="sy-maint">0</div></div>
-<div class="stat y"><div class="stat-label">資料版本</div><div class="stat-value" id="sy-ver">—</div></div>
-</div>
 
+<!-- 車輛履歷 -->
+<div class="page" id="page-history">
 <div class="card">
-<div class="card-title">📱 手機同步說明</div>
-<p style="font-size:13px;color:var(--muted);margin-bottom:16px">本系統資料存在瀏覽器，電腦與手機之間需要手動傳輸。請依照以下步驟操作：</p>
-<div class="sync-box">
-<div class="sync-step">
-<div class="sync-num">1</div>
-<div><strong style="color:var(--text)">在電腦上匯出備份</strong><br><span style="font-size:12px;color:var(--muted)">點選上方「📤 匯出備份」，會下載一個 .json 檔案</span></div>
-</div>
-<div class="sync-step">
-<div class="sync-num">2</div>
-<div><strong style="color:var(--text)">將 .json 傳到手機</strong><br><span style="font-size:12px;color:var(--muted)">可用 LINE、AirDrop、Google Drive、Email 等方式傳送 json 檔到手機</span></div>
-</div>
-<div class="sync-step">
-<div class="sync-num">3</div>
-<div><strong style="color:var(--text)">在手機上開啟本系統</strong><br><span style="font-size:12px;color:var(--muted)">在手機瀏覽器開啟這個 HTML 檔案（可先存到手機），然後點「📥 匯入資料」選擇 json 檔</span></div>
-</div>
-<div class="sync-step">
-<div class="sync-num">4</div>
-<div><strong style="color:var(--text)">手機改完再同步回電腦</strong><br><span style="font-size:12px;color:var(--muted)">在手機上匯出備份，再傳回電腦匯入即可</span></div>
+<div class="card-title">🔍 車輛履歷查詢</div>
+<div class="form-row">
+<div class="fg fill"><label>輸入車牌或車名</label><input type="text" id="hist-search" placeholder="例：ABC-1234 或 R15M" oninput="renderHistory()"></div>
 </div>
 </div>
-</div>
-
-<div class="card">
-<div class="card-title">📋 快速複製資料（文字傳輸）</div>
-<p style="font-size:13px;color:var(--muted);margin-bottom:12px">也可以直接複製下方 JSON 文字，貼到手機的記事本，再另存為 .json 檔案後匯入。</p>
-<button class="btn btn-primary" onclick="copyJsonToClipboard()" style="margin-bottom:12px">📋 複製目前資料 JSON</button>
-<textarea id="sync-json-area" rows="6" placeholder="點上方按鈕產生 JSON...（或貼入要匯入的 JSON）" style="margin-bottom:10px"></textarea>
-<button class="btn btn-sm" onclick="importFromTextarea()">📥 從上方文字匯入</button>
-</div>
+<div id="hist-results"></div>
+<div class="empty" id="hist-empty"><div class="icon">🔍</div><p>輸入車牌或車名開始查詢</p></div>
 </div>
 
 </div><!-- end container -->
@@ -1277,7 +1250,12 @@ async function autoDeductParts(parts,carLabel,date){
 function deductMsg(r){
   let msg='';
   if(r&&r.deducted&&r.deducted.length)msg+=' 🔧 已扣庫存：'+r.deducted.join('、');
-  if(r&&r.noStock&&r.noStock.length)msg+=' ⚠️庫存不足：'+r.noStock.join('、');
+  if(r&&r.noStock&&r.noStock.length)msg+=' ⚠️ 庫存不足：'+r.noStock.join('、');
+  if(r&&r.notFound&&r.notFound.length){
+    r.notFound.forEach(name=>{
+      setTimeout(()=>alert('⚠️ 「'+name+'」該品項庫存對不上，請自行確認庫存！'),300);
+    });
+  }
   return msg;
 }
 
@@ -1295,7 +1273,48 @@ function deductMsg(r){
 
 
 
-const ALL_TABS=['stock','overview','sold','maintenance','expense','inspection','report','sync'];
+const ALL_TABS=['stock','overview','sold','maintenance','expense','inspection','report','history'];
+
+function renderHistory(){
+  const q=(document.getElementById('hist-search').value||'').toLowerCase().trim();
+  const res=document.getElementById('hist-results');
+  const empty=document.getElementById('hist-empty');
+  if(!q){res.innerHTML='';empty.style.display='';return}
+  empty.style.display='none';
+  // 從 vDb.maint 找匹配的保養記錄
+  const matched=vDb.maint.filter(m=>(m.car||'').toLowerCase().includes(q));
+  if(!matched.length){
+    res.innerHTML='<div class="empty"><div class="icon">😔</div><p>找不到相關記錄</p></div>';
+    return;
+  }
+  res.innerHTML=matched.sort((a,b)=>b.date.localeCompare(a.date)).map(m=>`
+  <div class="rec-card" style="margin-bottom:10px">
+  <div class="rec-head" onclick="this.nextElementSibling.classList.toggle('open')">
+  <div style="flex:1">
+  <span style="font-weight:700;font-size:15px">${m.date}</span>
+  <span style="color:var(--pink3);font-size:13px;margin-left:10px">🏍️ ${m.car||'—'}</span>
+  ${m.note?`<span style="color:var(--muted);font-size:12px;margin-left:8px">📝 ${m.note}</span>`:''}
+  </div>
+  <span style="color:var(--muted)">▼</span>
+  </div>
+  <div class="rec-body">
+  <table style="width:100%;border-collapse:collapse">
+  <thead><tr>
+  <th style="padding:8px 12px;text-align:left;font-size:11px;color:var(--muted);background:var(--surface2)">項目名稱</th>
+  <th style="padding:8px 12px;text-align:left;font-size:11px;color:var(--muted);background:var(--surface2)">收費</th>
+  <th style="padding:8px 12px;text-align:left;font-size:11px;color:var(--muted);background:var(--surface2)">成本</th>
+  </tr></thead>
+  <tbody>
+  ${(m.items||[]).map(i=>`<tr>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(58,32,53,.3);font-weight:600">${i.name}</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(58,32,53,.3);color:var(--green)">${fmt(i.price)}</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(58,32,53,.3);color:var(--muted)">${fmt(i.cost)}</td>
+  </tr>`).join('')}
+  </tbody>
+  </table>
+  </div>
+  </div>`).join('');
+}
 function switchTab(t){
   document.querySelectorAll('#module-vehicle .tab').forEach((b,i)=>b.classList.toggle('active',ALL_TABS[i]===t));
   document.querySelectorAll('#module-vehicle .page').forEach(p=>p.classList.remove('active'));
