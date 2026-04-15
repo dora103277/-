@@ -494,8 +494,8 @@ if(sessionStorage.getItem('merged_auth')==='1')document.addEventListener('DOMCon
 </div>
 <span class="sec-label">📋 保養/改裝項目（可新增多筆）</span>
 <div class="rows-table">
-<div class="rows-head" style="grid-template-columns:1fr 150px 150px 44px">
-<span>項目名稱</span><span>收費 (NT$)</span><span>成本 (NT$)</span><span></span>
+<div class="rows-head" style="grid-template-columns:1fr 160px 150px 150px 44px">
+<span>項目名稱</span><span>耗材（選填）</span><span>收費 (NT$)</span><span>成本 (NT$)</span><span></span>
 </div>
 <div id="mt-rows"></div>
 </div>
@@ -1194,14 +1194,20 @@ async function iSave(){
   if(hi&&hi.length)await supaFetch('settings','PATCH',{value:iDb.hiddenItems||[]},'key=eq.hiddenItems');
   else await supaFetch('settings','POST',{key:'hiddenItems',value:iDb.hiddenItems||[]});
   // 同步 pricelist
-  const pl=await supaFetch('settings','GET',null,'key=eq.pricelist&select=key');
-  if(pl&&pl.length)await supaFetch('settings','PATCH',{value:iDb.pricelist||[]},'key=eq.pricelist');
-  else await supaFetch('settings','POST',{key:'pricelist',value:iDb.pricelist||[]});
+  // 同步 pricelist 資料表
+  const cloudPL=await supaFetch('pricelist','GET',null,'select=id');
+  const cloudPLIds=new Set((cloudPL||[]).map(r=>r.id));
+  const localPLIds=new Set((iDb.pricelist||[]).map(p=>p.id));
+  for(const p of (iDb.pricelist||[])){
+    if(!cloudPLIds.has(p.id))await supaFetch('pricelist','POST',{id:p.id,data:p});
+    else await supaFetch('pricelist','PATCH',{data:p},'id=eq.'+p.id);
+  }
+  for(const id of cloudPLIds){if(!localPLIds.has(id))await supaFetch('pricelist','DELETE',null,'id=eq.'+id);}
 }
 async function iLoadFromCloud(){
   try{
-    const [p,o,s,pl]=await Promise.all([supaFetch('purchases','GET',null,'select=id,data&order=id'),supaFetch('out_records','GET',null,'select=id,data&order=id'),supaFetch('settings','GET',null,'key=eq.hiddenItems&select=value'),supaFetch('settings','GET',null,'key=eq.pricelist&select=value')]);
-    iDb.purchases=(p||[]).map(r=>r.data);iDb.outRecords=(o||[]).map(r=>r.data);iDb.hiddenItems=s&&s[0]?s[0].value:[];iDb.pricelist=pl&&pl[0]?pl[0].value:[];
+    const [p,o,s,pl]=await Promise.all([supaFetch('purchases','GET',null,'select=id,data&order=id'),supaFetch('out_records','GET',null,'select=id,data&order=id'),supaFetch('settings','GET',null,'key=eq.hiddenItems&select=value'),supaFetch('pricelist','GET',null,'select=id,data&order=id')]);
+    iDb.purchases=(p||[]).map(r=>r.data);iDb.outRecords=(o||[]).map(r=>r.data);iDb.hiddenItems=s&&s[0]?s[0].value:[];iDb.pricelist=(pl||[]).map(r=>r.data);
   }catch(e){console.error('庫存載入失敗',e);}
 }
 function switchMain(mod){
@@ -1357,11 +1363,48 @@ function updateSvSum(){
 }
 document.getElementById('sv-cost').addEventListener('input',updateSvSum);
 
-function addMtRow(){makeRow(document.getElementById('mt-rows'),[{p:'保養/改裝項目名稱'},{t:'number',p:'0',w:'150px'},{t:'number',p:'0',w:'150px'}],updateMtSum)}
+function addMtRow(){
+  const wrap=document.getElementById('mt-rows');
+  const div=document.createElement('div');
+  div.className='data-row';
+  div.style.gridTemplateColumns='1fr 160px 150px 150px 44px';
+  // 項目名稱
+  const nameInp=document.createElement('input');
+  nameInp.type='text';nameInp.placeholder='保養/改裝項目名稱';
+  nameInp.style.cssText='border-radius:0;border:none;border-right:1px solid var(--border);background:var(--surface2);color:var(--text);padding:9px 12px;font-size:13px;width:100%';
+  nameInp.addEventListener('input',updateMtSum);
+  div.appendChild(nameInp);
+  // 耗材下拉
+  const partSel=document.createElement('select');
+  partSel.style.cssText='border-radius:0;border:none;border-right:1px solid var(--border);background:var(--surface2);color:var(--text);padding:9px 12px;font-size:13px;width:100%';
+  partSel.innerHTML='<option value="">不扣庫存</option>';
+  const inv=getInventory().filter(i=>i.stock>0);
+  inv.forEach(i=>{const op=document.createElement('option');op.value=i.name+'|||'+(i.supplier||'');op.textContent=i.name+(i.supplier?' ／ '+i.supplier:'')+'（'+i.stock+'）';partSel.appendChild(op);});
+  div.appendChild(partSel);
+  // 收費
+  const priceInp=document.createElement('input');
+  priceInp.type='number';priceInp.placeholder='0';
+  priceInp.style.cssText='border-radius:0;border:none;border-right:1px solid var(--border);background:var(--surface2);color:var(--text);padding:9px 12px;font-size:13px;width:100%';
+  priceInp.addEventListener('input',updateMtSum);
+  div.appendChild(priceInp);
+  // 成本
+  const costInp=document.createElement('input');
+  costInp.type='number';costInp.placeholder='0';
+  costInp.style.cssText='border-radius:0;border:none;border-right:1px solid var(--border);background:var(--surface2);color:var(--text);padding:9px 12px;font-size:13px;width:100%';
+  costInp.addEventListener('input',updateMtSum);
+  div.appendChild(costInp);
+  // 刪除
+  const del=document.createElement('button');
+  del.className='row-del';del.textContent='✕';
+  del.onclick=()=>{div.remove();updateMtSum();};
+  div.appendChild(del);
+  wrap.appendChild(div);
+  updateMtSum();
+}
 function addShareRow(){makeRow(document.getElementById('mt-share-rows'),[{p:'給誰（例：小熊）'},{t:'number',p:'0',w:'150px'}],updateMtSum)}
 function updateMtSum(){
   let price=0,cost=0,share=0;
-  document.querySelectorAll('#mt-rows .data-row').forEach(r=>{const ins=r.querySelectorAll('input');price+=Number(ins[1]?.value)||0;cost+=Number(ins[2]?.value)||0});
+  document.querySelectorAll('#mt-rows .data-row').forEach(r=>{const numIns=r.querySelectorAll('input[type="number"]');price+=Number(numIns[0]?.value)||0;cost+=Number(numIns[1]?.value)||0});
   document.querySelectorAll('#mt-share-rows .data-row').forEach(r=>{const ins=r.querySelectorAll('input');share+=Number(ins[1]?.value)||0});
   document.getElementById('mt-s-price').textContent=fmt(price);
   document.getElementById('mt-s-cost').textContent=fmt(cost);
@@ -1616,16 +1659,33 @@ function addMaint(){
   const car=document.getElementById('mt-car').value.trim();
   if(!car){toast('請填入車輛名稱',false);return}
   const items=[];
-  document.querySelectorAll('#mt-rows .data-row').forEach(r=>{const ins=r.querySelectorAll('input');const n=ins[0]?.value.trim();if(n)items.push({name:n,price:Number(ins[1]?.value)||0,cost:Number(ins[2]?.value)||0})});
+  document.querySelectorAll('#mt-rows .data-row').forEach(r=>{
+  const nameInp=r.querySelector('input');
+  const partSel=r.querySelector('select');
+  const numInps=r.querySelectorAll('input[type="number"]');
+  const n=nameInp?.value.trim();
+  if(n)items.push({name:n,partKey:partSel?.value||'',price:Number(numInps[0]?.value)||0,cost:Number(numInps[1]?.value)||0});
+});
   if(!items.length){toast('請至少新增一個保養項目',false);return}
   const shares=[];
   document.querySelectorAll('#mt-share-rows .data-row').forEach(r=>{const ins=r.querySelectorAll('input');const who=ins[0]?.value.trim();if(who)shares.push({who,amount:Number(ins[1]?.value)||0})});
   const tp=items.reduce((s,i)=>s+i.price,0),tc=items.reduce((s,i)=>s+i.cost,0),ts=shares.reduce((s,x)=>s+x.amount,0);
   vDb.maint.push({id:Date.now(),date:document.getElementById('mt-date').value||today(),car,year:document.getElementById('mt-year').value.trim(),items,shares,totalPrice:tp,totalCost:tc,totalShare:ts,profit:tp-tc-ts,note:document.getElementById('mt-note').value.trim()});
   vSave().then(()=>{
+    // 只扣有選耗材下拉的品項
     const _mp=[];
-    document.querySelectorAll('#mt-rows .data-row').forEach(r=>{const ins=r.querySelectorAll('input');const n=ins[0]?.value.trim();if(n)_mp.push({name:n});});
-    autoDeductParts(_mp,document.getElementById('mt-car').value.trim(),document.getElementById('mt-date').value||today()).then(r=>toast('✅ 已新增保養/改裝記錄！'+deductMsg(r)));
+    document.querySelectorAll('#mt-rows .data-row').forEach(r=>{
+      const partSel=r.querySelector('select');
+      if(partSel&&partSel.value){
+        const [name,supplier]=partSel.value.split('|||');
+        if(name)_mp.push({name,supplier:supplier||''});
+      }
+    });
+    if(_mp.length){
+      autoDeductParts(_mp,document.getElementById('mt-car').value.trim(),document.getElementById('mt-date').value||today()).then(r=>toast('✅ 已新增保養/改裝記錄！'+deductMsg(r)));
+    }else{
+      toast('✅ 已新增保養/改裝記錄！');
+    }
   }).catch(()=>toast('❌ 儲存失敗',false));
   renderMaint();updateMaintStats();populateMonths('mt-mf',vDb.maint);
   ['mt-car','mt-year','mt-note'].forEach(id=>document.getElementById(id).value='');
