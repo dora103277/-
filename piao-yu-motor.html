@@ -489,6 +489,7 @@ if(sessionStorage.getItem('merged_auth')==='1')document.addEventListener('DOMCon
 <div class="form-row">
 <div class="fg"><label>登記時間</label><input type="date" id="mt-date"></div>
 <div class="fg fill"><label>車輛名稱</label><input type="text" id="mt-car" placeholder="車輛名稱"></div>
+<div class="fg"><label>車牌</label><input type="text" id="mt-plate" placeholder="ABC-1234"></div>
 <div class="fg"><label>年份</label><input type="text" id="mt-year" placeholder="2022年"></div>
 <div class="fg fill"><label>備註</label><input type="text" id="mt-note" placeholder="補充說明..."></div>
 </div>
@@ -642,6 +643,7 @@ if(sessionStorage.getItem('merged_auth')==='1')document.addEventListener('DOMCon
 <div class="form-row">
 <div class="fg"><label>登記時間</label><input type="date" id="maint-edit-date"></div>
 <div class="fg fill"><label>車輛名稱</label><input type="text" id="maint-edit-car"></div>
+<div class="fg"><label>車牌</label><input type="text" id="maint-edit-plate" placeholder="ABC-1234"></div>
 <div class="fg"><label>年份</label><input type="text" id="maint-edit-year"></div>
 <div class="fg fill"><label>備註</label><input type="text" id="maint-edit-note"></div>
 </div>
@@ -1281,27 +1283,97 @@ function deductMsg(r){
 
 const ALL_TABS=['stock','overview','sold','maintenance','expense','inspection','report','history'];
 
+function jumpToMaint(id){
+  switchTab('maintenance');
+  setTimeout(()=>{
+    const el=document.getElementById('maint-'+id);
+    if(el){
+      el.scrollIntoView({behavior:'smooth',block:'center'});
+      el.style.border='2px solid var(--pink)';
+      setTimeout(()=>el.style.border='',2000);
+      // 展開這筆記錄
+      const body=document.getElementById('rec-'+id);
+      if(body)body.classList.add('open');
+    }
+  },300);
+}
 function renderHistory(){
   const q=(document.getElementById('hist-search').value||'').toLowerCase().trim();
   const res=document.getElementById('hist-results');
   const empty=document.getElementById('hist-empty');
   if(!q){res.innerHTML='';empty.style.display='';return}
   empty.style.display='none';
-  // 從 vDb.maint 找匹配的保養記錄
-  const matched=vDb.maint.filter(m=>(m.car||'').toLowerCase().includes(q));
+
+  // 從在庫+售出車輛用車牌找車名
+  const allVehicles=[...vDb.stock,...vDb.sold];
+  const matched=allVehicles.filter(v=>(v.plate||'').toLowerCase()===q);
+
   if(!matched.length){
-    res.innerHTML='<div class="empty"><div class="icon">😔</div><p>找不到相關記錄</p></div>';
+    res.innerHTML='<div class="empty"><div class="icon">😔</div><p>找不到這個車牌</p></div>';
     return;
   }
-  res.innerHTML=matched.sort((a,b)=>b.date.localeCompare(a.date)).map(m=>`
+
+  // 找到的車輛資訊
+  const vehicle=matched[0];
+  const carNames=matched.map(v=>v.name.toLowerCase());
+  const plate=(vehicle.plate||'').toUpperCase();
+  const status=vDb.stock.find(v=>(v.plate||'').toLowerCase()===q)?'在庫':'售出';
+
+  // 只用車牌完全比對保養記錄
+  const maintRecords=vDb.maint.filter(m=>(m.plate||'').toLowerCase()===q);
+
+  // 進車耗材
+  const partsHtml=(vehicle.parts&&vehicle.parts.length)?vehicle.parts.map(p=>`
+  <tr>
+  <td style="padding:8px 12px;border-bottom:1px solid rgba(58,32,53,.3)">${p.name||'—'}</td>
+  <td style="padding:8px 12px;border-bottom:1px solid rgba(58,32,53,.3);color:var(--muted)">${fmt(p.amount)}</td>
+  <td style="padding:8px 12px;border-bottom:1px solid rgba(58,32,53,.3);color:var(--muted)">${p.note||'—'}</td>
+  </tr>`).join(''):'';
+
+  let html=`<div class="card" style="margin-bottom:16px">
+  <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:${vehicle.parts&&vehicle.parts.length?'14px':'0'}">
+  <div>
+  <div style="font-size:20px;font-weight:700;color:var(--text)">${vehicle.name} ${vehicle.year||''}</div>
+  <div style="font-size:14px;color:var(--pink3);margin-top:4px">🪪 ${plate}</div>
+  </div>
+  <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--muted)">
+  <span>🛣 ${vehicle.mileage?Number(vehicle.mileage).toLocaleString()+' km':'—'}</span>
+  <span style="color:${status==='在庫'?'var(--green)':'var(--red)'};font-weight:700">${status==='在庫'?'✅ 在庫':'💰 已售出'}</span>
+  <span>保養記錄 ${maintRecords.length} 筆</span>
+  </div>
+  </div>
+  ${vehicle.parts&&vehicle.parts.length?`
+  <div style="font-size:12px;color:var(--pink);font-weight:700;margin-bottom:8px">🔩 進車耗材</div>
+  <table style="width:100%;border-collapse:collapse">
+  <thead><tr>
+  <th style="padding:8px 12px;text-align:left;font-size:11px;color:var(--muted);background:var(--surface2)">項目</th>
+  <th style="padding:8px 12px;text-align:left;font-size:11px;color:var(--muted);background:var(--surface2)">金額</th>
+  <th style="padding:8px 12px;text-align:left;font-size:11px;color:var(--muted);background:var(--surface2)">備註</th>
+  </tr></thead>
+  <tbody>${partsHtml}</tbody>
+  </table>`:''}
+  </div>`;
+
+  if(!maintRecords.length){
+    html+='<div class="empty" style="padding:24px"><div class="icon">🔧</div><p>尚無保養記錄（新增保養時需填寫車牌）</p></div>';
+    res.innerHTML=html;
+    return;
+  }
+  html+='<div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:10px">🔧 保養/改裝記錄</div>';
+
+  html+=maintRecords.sort((a,b)=>b.date.localeCompare(a.date)).map(m=>`
   <div class="rec-card" style="margin-bottom:10px">
   <div class="rec-head" onclick="this.nextElementSibling.classList.toggle('open')">
   <div style="flex:1">
   <span style="font-weight:700;font-size:15px">${m.date}</span>
   <span style="color:var(--pink3);font-size:13px;margin-left:10px">🏍️ ${m.car||'—'}</span>
   ${m.note?`<span style="color:var(--muted);font-size:12px;margin-left:8px">📝 ${m.note}</span>`:''}
+  <span style="color:var(--blue);font-size:12px;margin-left:8px">${m.items?m.items.length+'項':''}</span>
   </div>
+  <div style="display:flex;gap:8px;align-items:center">
+  <button class="btn-edit" onclick="event.stopPropagation();jumpToMaint(${m.id})" style="font-size:11px;padding:4px 10px">跳轉 ↗</button>
   <span style="color:var(--muted)">▼</span>
+  </div>
   </div>
   <div class="rec-body">
   <table style="width:100%;border-collapse:collapse">
@@ -1320,6 +1392,8 @@ function renderHistory(){
   </table>
   </div>
   </div>`).join('');
+
+  res.innerHTML=html;
 }
 function switchTab(t){
   document.querySelectorAll('#module-vehicle .tab').forEach((b,i)=>b.classList.toggle('active',ALL_TABS[i]===t));
@@ -1670,7 +1744,7 @@ function addMaint(){
   const shares=[];
   document.querySelectorAll('#mt-share-rows .data-row').forEach(r=>{const ins=r.querySelectorAll('input');const who=ins[0]?.value.trim();if(who)shares.push({who,amount:Number(ins[1]?.value)||0})});
   const tp=items.reduce((s,i)=>s+i.price,0),tc=items.reduce((s,i)=>s+i.cost,0),ts=shares.reduce((s,x)=>s+x.amount,0);
-  vDb.maint.push({id:Date.now(),date:document.getElementById('mt-date').value||today(),car,year:document.getElementById('mt-year').value.trim(),items,shares,totalPrice:tp,totalCost:tc,totalShare:ts,profit:tp-tc-ts,note:document.getElementById('mt-note').value.trim()});
+  vDb.maint.push({id:Date.now(),date:document.getElementById('mt-date').value||today(),car,plate:document.getElementById('mt-plate').value.trim(),year:document.getElementById('mt-year').value.trim(),items,shares,totalPrice:tp,totalCost:tc,totalShare:ts,profit:tp-tc-ts,note:document.getElementById('mt-note').value.trim()});
   vSave().then(()=>{
     // 只扣有選耗材下拉的品項
     const _mp=[];
@@ -1688,7 +1762,7 @@ function addMaint(){
     }
   }).catch(()=>toast('❌ 儲存失敗',false));
   renderMaint();updateMaintStats();populateMonths('mt-mf',vDb.maint);
-  ['mt-car','mt-year','mt-note'].forEach(id=>document.getElementById(id).value='');
+  ['mt-car','mt-plate','mt-year','mt-note'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('mt-rows').innerHTML='';document.getElementById('mt-share-rows').innerHTML='';updateMtSum();
 }
 
@@ -1699,6 +1773,7 @@ function editMaint(id){
   document.getElementById('maint-edit-id').value=id;
   document.getElementById('maint-edit-date').value=m.date||'';
   document.getElementById('maint-edit-car').value=m.car||'';
+  document.getElementById('maint-edit-plate').value=m.plate||'';
   document.getElementById('maint-edit-year').value=m.year||'';
   document.getElementById('maint-edit-note').value=m.note||'';
   const iWrap=document.getElementById('maint-edit-rows');iWrap.innerHTML='';
@@ -1713,6 +1788,7 @@ function confirmMaintEdit(){
   const m=vDb.maint.find(m=>m.id===id);if(!m)return;
   m.date=document.getElementById('maint-edit-date').value;
   m.car=document.getElementById('maint-edit-car').value;
+  m.plate=document.getElementById('maint-edit-plate').value.trim();
   m.year=document.getElementById('maint-edit-year').value;
   m.note=document.getElementById('maint-edit-note').value;
   const items=[];
@@ -1735,7 +1811,7 @@ function renderMaint(){
   if(!rows.length){wrap.innerHTML='';empty.style.display='';return}
   empty.style.display='none';
   wrap.innerHTML=rows.sort((a,b)=>b.date.localeCompare(a.date)).map(m=>`
-<div class="rec-card">
+<div class="rec-card" id="maint-${m.id}">
 <div class="rec-head" onclick="toggleRec(${m.id})">
 <div style="flex:1"><span style="font-weight:700;font-size:15px">${m.car}</span><span style="color:var(--muted);font-size:13px;margin-left:8px">${m.year||''}</span><span style="color:var(--muted);font-size:13px;margin-left:8px">${m.date}</span>${m.note?`<span style="color:var(--muted);font-size:12px;margin-left:8px">📝 ${m.note}</span>`:''}</div>
 <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap"><span class="money pos" style="font-size:14px">收 ${fmt(m.totalPrice)}</span><span class="money ${m.profit>=0?'pos':'neg'}" style="font-size:14px">淨 ${fmt(m.profit)}</span><button class="btn btn-edit" onclick="event.stopPropagation();editMaint(${m.id})" style="margin-right:4px">編輯</button><button class="btn btn-danger" onclick="event.stopPropagation();deleteMaint(${m.id})">刪除</button><span style="color:var(--muted)">▼</span></div>
